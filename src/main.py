@@ -2,7 +2,7 @@ import numpy as np
 import time
 from .model_infer_client import ModelClientProcess
 from .args import args
-from .utils.preprocess import resize_to_512_center, apply_color_curves
+from .utils.preprocess import clear_transparent_rgb, resize_to_512_center, apply_color_curves
 import cv2
 from .utils.shared_mem_guard import SharedMemoryGuard
 from multiprocessing import shared_memory
@@ -17,12 +17,8 @@ def main():
     # Load character image
     img = Image.open(f"data/images/{args.character}.png")
     img = img.convert('RGBA')
+    img = clear_transparent_rgb(img)
     ow, oh = img.size
-    for i, px in enumerate(img.getdata()):
-        if px[3] <= 0:
-            y = i // ow
-            x = i % ow
-            img.putpixel((x, y), (0, 0, 0, 0))
     if ow != 512 or oh != 512:
         img = resize_to_512_center(img)
     if args.alpha_clean:
@@ -98,8 +94,9 @@ def main():
         print("Using OpenCV windows for output display.")
 
     pipeline_fps = FPS()
-    last_frame_time = None  # 上一帧输出时间，用于打印帧时间差
     last_batch_start_time = None  # 上一批就绪时间，用于周期估计
+    next_status_report_time = 0.0
+    status_report_interval = 0.5
     n_frames = args.interpolation_scale
     min_period = n_frames * interval if interval > 0 else n_frames / 60.0  # 60fps 下本批最少占用时间
     default_period = 1.0 / 15.0  # 约 15fps 推理时的周期，首包无历史时使用
@@ -135,7 +132,6 @@ def main():
                 cv2.imshow("EasyVtuber Debug Frame", np_ret_shms[i])
                 cv2.waitKey(1)
             now_send = time.perf_counter()
-            last_frame_time = now_send
             # 限速：下一帧最早在 last_time + interval，若已落后于当前时间则对齐到 now
             if interval > 0:
                 last_time += interval
@@ -144,15 +140,18 @@ def main():
             ret_batch_shm_channels[i].release()
         output_pipeline_fps_val = pipeline_fps() * args.interpolation_scale
         infer_process.output_pipeline_fps.value = output_pipeline_fps_val
-        print(
-            "Infer Process FPS: {:.2f}, Input FPS: {:.2f}, Model Avg Interval: {:.2f} ms, Cache Hit Ratio: {:.2f}%, GPU Cache Hit Ratio: {:.2f}%, Output Pipeline FPS {:.5f}".format(
-                infer_process.pipeline_fps_number.value,
-                input_fps.value,
-                infer_process.average_model_interval.value * 1000,
-                infer_process.cache_hit_ratio.value * 100,
-                infer_process.gpu_cache_hit_ratio.value * 100,
-                output_pipeline_fps_val
-            ), end='\r', flush=True)
+        now = time.perf_counter()
+        if now >= next_status_report_time:
+            print(
+                "Infer Process FPS: {:.2f}, Input FPS: {:.2f}, Model Avg Interval: {:.2f} ms, Cache Hit Ratio: {:.2f}%, GPU Cache Hit Ratio: {:.2f}%, Output Pipeline FPS {:.5f}".format(
+                    infer_process.pipeline_fps_number.value,
+                    input_fps.value,
+                    infer_process.average_model_interval.value * 1000,
+                    infer_process.cache_hit_ratio.value * 100,
+                    infer_process.gpu_cache_hit_ratio.value * 100,
+                    output_pipeline_fps_val
+                ), end='\r', flush=True)
+            next_status_report_time = now + status_report_interval
 
 
 if __name__ == "__main__":

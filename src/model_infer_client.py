@@ -1,4 +1,3 @@
-import math
 import os
 from multiprocessing import Process, Value, shared_memory, Event
 import cv2
@@ -10,6 +9,7 @@ from .utils.shared_mem_guard import SharedMemoryGuard
 from .utils.pose_simplify import pose_simplify
 from .utils.fps import FPS, Interval
 from .utils.gpu_duty_limiter import GpuDutyCycleLimiter
+from .utils.frame_transform import apply_output_transform, build_output_transform
 from typing import List
 
 class ModelClientProcess(Process):
@@ -138,29 +138,22 @@ class ModelClientProcess(Process):
             self.finish_event.set() # Back pressure main process loop if infer slow
 
     def post_process_ret(self, np_position: np.ndarray, output_images: np.ndarray) -> List[np.ndarray]:
-        k_scale = 1
-        rotate_angle = 0
-        dx = 0
-        dy = 0
-        if args.extend_movement:
-            k_scale = np_position[2] * math.sqrt(args.extend_movement) + 1
-            rotate_angle = -np_position[0] * 10 * args.extend_movement
-            dx = np_position[0] * 400 * k_scale * args.extend_movement
-            dy = -np_position[1] * 600 * k_scale * args.extend_movement
-        if args.bongo:
-            rotate_angle -= 5
-
-        rm = cv2.getRotationMatrix2D((output_images[0].shape[1] / 2, output_images[0].shape[0] / 2), rotate_angle, k_scale)
-        rm[0, 2] += dx + output_images[0].shape[1] / 2 - output_images[0].shape[1] / 2
-        rm[1, 2] += dy + output_images[0].shape[0] / 2 - output_images[0].shape[0] / 2
+        transform = build_output_transform(
+            np_position,
+            output_images[0].shape,
+            args.extend_movement,
+            args.bongo,
+        )
 
         ret = []
         for i in range(output_images.shape[0]):
-            bgra_image = output_images[i]
-            bgra_image = cv2.warpAffine(
-                bgra_image,
-                rm,
-                (bgra_image.shape[1], bgra_image.shape[0]))
+            # Debug overlays mutate the frame, so preserve the model/cache buffer
+            # while still avoiding the much more expensive identity warp.
+            bgra_image = apply_output_transform(
+                output_images[i],
+                transform,
+                copy_identity=args.output_debug,
+            )
 
             if args.output_debug:
                 # 与 main.py 输出格式一致

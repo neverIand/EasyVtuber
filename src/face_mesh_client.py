@@ -50,6 +50,9 @@ class FaceMeshClientProcess(Process):
                 raise Exception("Can't receive frame (stream end?).")
             self.fps.value = input_fps()
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # MediaPipe can reference immutable contiguous input instead of
+            # copying every camera frame into a new ImageFrame packet.
+            rgb_frame.flags.writeable = False
             results = facemesh.process(rgb_frame)
             if results.multi_face_landmarks is None:
                 continue

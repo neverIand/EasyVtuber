@@ -3,6 +3,17 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 
+def clear_transparent_rgb(img):
+    """Set hidden RGB values to zero wherever an RGBA image is transparent."""
+    if img.mode != 'RGBA':
+        img = img.convert('RGBA')
+
+    pixels = np.array(img, copy=True)
+    transparent = pixels[:, :, 3] == 0
+    pixels[transparent, :3] = 0
+    return Image.fromarray(pixels)
+
+
 def resize_to_512_center(img, fill_color=(0, 0, 0, 0)):
 
     # 计算缩放比例
