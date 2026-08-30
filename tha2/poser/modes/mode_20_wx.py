@@ -1,5 +1,6 @@
 import math
 from enum import Enum
+from functools import lru_cache
 from typing import List, Dict, Optional
 
 import numpy
@@ -12,6 +13,33 @@ from tha2.poser.modes.mode_20 import get_pose_parameters
 
 def clamp(x, min_value, max_value):
     return max(min_value, min(max_value, x))
+
+
+_MOUTH_DECOMPOSITION_MATRIX = numpy.array([
+    [1.0, 1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0, 0.0],
+    [0.5, 0.3, 0.25, 0.75],
+    [1.0, 0.5, 0.5, 0.4]
+])
+_MOUTH_DECOMPOSITION_BOUNDS = [(0.0, 1.0)] * 4
+
+
+@lru_cache(maxsize=4096)
+def _decompose_mouth(mouth_open, mouth_lower_down, mouth_funnel, mouth_pucker):
+    """Run the legacy optimizer once per distinct iFacialMocap mouth state."""
+    mouth_point = [mouth_open, mouth_lower_down, mouth_funnel, mouth_pucker]
+    decomposition = numpy.array([0, 0, 0, 0])
+
+    def loss(value):
+        return numpy.linalg.norm(numpy.matmul(value, _MOUTH_DECOMPOSITION_MATRIX) - mouth_point) \
+               + 0.01 * numpy.linalg.norm(value, ord=1)
+
+    result = scipy.optimize.minimize(
+        loss,
+        decomposition,
+        bounds=_MOUTH_DECOMPOSITION_BOUNDS,
+    )["x"]
+    return tuple(result.tolist())
 
 
 class EyebrowDownMode(Enum):
@@ -241,29 +269,12 @@ class IFacialMocapPoseConverter20(IFacialMocapPoseConverter):
                 mouth_funnel = ifacialmocap_pose[MOUTH_FUNNEL]
                 mouth_pucker = ifacialmocap_pose[MOUTH_PUCKER]
 
-                mouth_point = [mouth_open, mouth_lower_down, mouth_funnel, mouth_pucker]
-
-                aaa_point = [1.0, 1.0, 0.0, 0.0]
-                iii_point = [0.0, 1.0, 0.0, 0.0]
-                uuu_point = [0.5, 0.3, 0.25, 0.75]
-                ooo_point = [1.0, 0.5, 0.5, 0.4]
-
-                decomp = numpy.array([0, 0, 0, 0])
-                M = numpy.array([
-                    aaa_point,
-                    iii_point,
-                    uuu_point,
-                    ooo_point
-                ])
-
-                def loss(decomp):
-                    return numpy.linalg.norm(numpy.matmul(decomp, M) - mouth_point) \
-                           + 0.01 * numpy.linalg.norm(decomp, ord=1)
-
-                opt_result = scipy.optimize.minimize(loss, decomp,
-                                                     bounds=[(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0)])
-                decomp = opt_result["x"]
-                restricted_decomp = [decomp.item(0), decomp.item(1), decomp.item(2), decomp.item(3)]
+                restricted_decomp = _decompose_mouth(
+                    mouth_open,
+                    mouth_lower_down,
+                    mouth_funnel,
+                    mouth_pucker,
+                )
                 # restricted_decomp = restrict_to_two_morphs(
                 #    [decomp.item(0), decomp.item(1), decomp.item(2), decomp.item(3)])
                 pose[self.mouth_aaa_index] = restricted_decomp[0]

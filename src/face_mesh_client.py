@@ -1,6 +1,7 @@
 import mediapipe as mp
 from multiprocessing import Process, shared_memory, Value
 import cv2
+import math
 import numpy as np
 from .args import args
 from .utils.shared_mem_guard import SharedMemoryGuard
@@ -44,6 +45,7 @@ class FaceMeshClientProcess(Process):
         position_offset = None
         print("Webcam Input Running at {:.2f} FPS".format(input_fps.view()))
         position_vector = np.array([0, 0, 0, 1], dtype=np.float32)
+        model_input_arr = np.zeros(45, dtype=np.float32)
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -57,11 +59,12 @@ class FaceMeshClientProcess(Process):
             if results.multi_face_landmarks is None:
                 continue
 
-            # 计算呼吸效果（使用 sin 函数，在 breath_cycle 时间内从 0 到 1 再到 0）
-            breath_elapsed = (time.perf_counter() - breath_start_time) % args.breath_cycle
-            # 使用 sin 函数，让值在一个周期内从 0 -> 1 -> 0
-            # sin 在 0 到 π 之间从 0 到 1 到 0
-            breath_value = np.sin(breath_elapsed / args.breath_cycle * np.pi)
+            if math.isfinite(args.breath_cycle):
+                # 使用 sin 函数，让值在一个周期内从 0 -> 1 -> 0。
+                breath_elapsed = (time.perf_counter() - breath_start_time) % args.breath_cycle
+                breath_value = np.sin(breath_elapsed / args.breath_cycle * np.pi)
+            else:
+                breath_value = 0.0
 
             facial_landmarks = results.multi_face_landmarks[0].landmark
             pose = get_pose(facial_landmarks)
@@ -74,30 +77,23 @@ class FaceMeshClientProcess(Process):
             y_angle = pose[6]
             z_angle = pose[7]
 
-            eyebrow_vector = [0.0] * 12
-            mouth_eye_vector = [0.0] * 27
-            pose_vector = [0.0] * 6
-
-            mouth_eye_vector[2] = max(eye_l_h_temp, eye_r_h_temp)
-            mouth_eye_vector[3] = max(eye_l_h_temp, eye_r_h_temp)
-
-            mouth_eye_vector[14] = mouth_ratio * 2.0
-
-            mouth_eye_vector[25] = 0.0 # keep iris stable for user demo
-            mouth_eye_vector[26] = 0.0
             if position_offset is None:
                 position_offset = [(x_angle - 1.5) * 1.6, y_angle * 2.0 , (z_angle + 1.5) * 2]
-            pose_vector[0] = (x_angle - 1.5) * 1.6 - position_offset[0]
-            pose_vector[1] = y_angle * 2.0 - position_offset[1]  # temp weight
-            pose_vector[2] = (z_angle + 1.5) * 2 - position_offset[2]  # temp weight
-            pose_vector[3] = pose_vector[1]
-            pose_vector[4] = pose_vector[2]
-            pose_vector[5] = breath_value
 
-            model_input_arr = eyebrow_vector
-            model_input_arr.extend(mouth_eye_vector)
-            model_input_arr.extend(pose_vector)
+            # Reuse the model input buffer instead of allocating three lists and
+            # a new NumPy array for every camera frame.
+            model_input_arr.fill(0.0)
+            blink = max(eye_l_h_temp, eye_r_h_temp)
+            model_input_arr[14] = blink
+            model_input_arr[15] = blink
+            model_input_arr[26] = mouth_ratio * 2.0
+            model_input_arr[39] = (x_angle - 1.5) * 1.6 - position_offset[0]
+            model_input_arr[40] = y_angle * 2.0 - position_offset[1]
+            model_input_arr[41] = (z_angle + 1.5) * 2 - position_offset[2]
+            model_input_arr[42] = model_input_arr[40]
+            model_input_arr[43] = model_input_arr[41]
+            model_input_arr[44] = breath_value
 
             with pose_position_shm_guard.lock():
-                np_pose_shm[:] = pose_filter(np.array(model_input_arr, dtype=np.float32))
+                np_pose_shm[:] = pose_filter(model_input_arr)
                 np_position_shm[:] = position_vector
