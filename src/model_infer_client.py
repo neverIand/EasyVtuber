@@ -9,6 +9,7 @@ from .args import args
 from .utils.shared_mem_guard import SharedMemoryGuard
 from .utils.pose_simplify import pose_simplify
 from .utils.fps import FPS, Interval
+from .utils.gpu_duty_limiter import GpuDutyCycleLimiter
 from typing import List
 
 class ModelClientProcess(Process):
@@ -54,6 +55,7 @@ class ModelClientProcess(Process):
 
         model_infer_average_interval: Interval = Interval()
         pipeline_fps = FPS()
+        gpu_duty_limiter = GpuDutyCycleLimiter(args.gpu_duty_limit)
 
         # Use unified ezvtb_rt interface for both THA3 and THA4
         model = get_core(use_tensorrt=args.use_tensorrt,
@@ -84,6 +86,12 @@ class ModelClientProcess(Process):
 
         last_pose = np.zeros((45,), dtype=np.float32)
 
+        print(
+            "GPU inference duty limit: {:.1f}% "
+            "(sustained target; instantaneous utilization may be higher)".format(
+                args.gpu_duty_limit
+            )
+        )
         print("Model Inference Ready")
         while True:
             with pose_position_shm_guard.lock():
@@ -96,8 +104,11 @@ class ModelClientProcess(Process):
                 input_poses.append(pose_simplify(last_pose + increment * (i + 1)))
             last_pose = np_pose
 
+            gpu_duty_limiter.wait()
             model_infer_average_interval.start()
+            inference_started_at = time.perf_counter()
             output_images = model.inference(input_poses)
+            gpu_duty_limiter.record_inference(inference_started_at)
 
             if args.max_ram_cache_len > 0:
                 hits = model.cacher.hits

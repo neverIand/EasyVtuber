@@ -47,6 +47,7 @@ default_arg = {
     'model_select': 'seperable_half',
     'interpolation': "Off",
     'frame_rate_limit': '30',
+    'gpu_duty_limit': '90',
     'sr': "Off",
     'use_tensorrt': False,
     'preset': 'Low',
@@ -425,6 +426,10 @@ class LauncherPanel(wx.Panel):
 
         addOption('frame_rate_limit', title='FPS Limit', desc='选择帧率限制目标',
                   choices=['10', '15', '20', '30', '60'])
+        addOption('gpu_duty_limit', title='GPU Duty Limit',
+                  desc='限制同步推理的持续占空比\n不保证消除瞬时100%峰值',
+                  choices=['70%', '80%', '90%', '95%', '100% (Off)'],
+                  mapping=['70', '80', '90', '95', '100'])
         addOption('preset', title='Performance Preset', desc='性能预设，注意修改后会覆盖后续配置',
                   choices=['Low', 'Medium', 'High', 'Ultra', 'Custom'])
 
@@ -736,6 +741,10 @@ class LauncherPanel(wx.Panel):
             if args['frame_rate_limit'] is not None:
                 run_args.append('--frame_rate_limit')
                 run_args.append(args['frame_rate_limit'])
+
+            if args['gpu_duty_limit'] is not None:
+                run_args.append('--gpu_duty_limit')
+                run_args.append(args['gpu_duty_limit'])
 
             if args['sr'] is not None and args['sr'] != 'Off':
                 run_args.append('--use_sr')

@@ -1,4 +1,5 @@
 import argparse
+import math
 import re
 
 
@@ -10,6 +11,13 @@ def convert_to_byte(size):
         index = ['b', 'kb', 'mb', 'gb', 'tb'].index(unit)
         return amount * pow(1024, index)
     raise ValueError("Invalid size provided, value is " + size)
+
+
+def percentage(value):
+    result = float(value)
+    if not math.isfinite(result) or result <= 0 or result > 100:
+        raise argparse.ArgumentTypeError("percentage must be greater than 0 and at most 100")
+    return result
 
 
 parser = argparse.ArgumentParser()
@@ -61,6 +69,12 @@ parser.add_argument('--sr_a4k', action='store_true')
 parser.add_argument('--cache', type=str, default='256mb')
 
 parser.add_argument('--frame_rate_limit', type=int, default=30)
+parser.add_argument(
+    '--gpu_duty_limit',
+    type=percentage,
+    default=90.0,
+    help='Target maximum sustained inference duty cycle in percent; 100 disables throttling',
+)
 
 parser.add_argument('--alpha_clean', action='store_true')
 
