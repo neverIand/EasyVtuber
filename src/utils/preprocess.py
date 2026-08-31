@@ -1,6 +1,5 @@
 from PIL import Image
 import numpy as np
-from scipy.interpolate import interp1d
 
 
 def clear_transparent_rgb(img):
@@ -52,6 +51,8 @@ def apply_color_curves(img, curves):
             'b': [(x1, y1), (x2, y2), ...]     # 蓝色通道曲线
         }
     """
+    from scipy.interpolate import interp1d
+
     if img.mode == 'P':
         img = img.convert('RGB')
 

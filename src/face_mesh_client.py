@@ -9,7 +9,6 @@ from .utils.camera_frame import prepare_mediapipe_rgb
 from .utils.pose import get_pose
 from .utils.fps import FPS
 from .utils.filter import OneEuroFilterNumpy
-from OneEuroFilter import OneEuroFilter
 import time
 
 

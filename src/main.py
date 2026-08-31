@@ -9,8 +9,6 @@ from multiprocessing import shared_memory
 from .utils.timer_wait import wait_until
 from PIL import Image
 from .utils.fps import FPS
-import pyvirtualcam
-from OpenGL.GL import GL_RGBA
 
 
 def main():
@@ -80,6 +78,8 @@ def main():
     interval: float = 1.0 / args.frame_rate_limit if args.frame_rate_limit > 0 else 0.0
 
     if args.output_virtual_cam:
+        import pyvirtualcam
+
         virtual_cam = pyvirtualcam.Camera(width=cam_width_scale * args.model_output_size,
                                           height=args.model_output_size,
                                           fps=args.frame_rate_limit,
@@ -87,7 +87,9 @@ def main():
                                           fmt=pyvirtualcam.PixelFormat.RGB)
         print(f'Using virtual camera: {virtual_cam.device}')
     elif args.output_spout2:
+        from OpenGL.GL import GL_RGBA
         from PySpout import SpoutSender
+
         spout_sender = SpoutSender("EasyVtuber", cam_width_scale * args.model_output_size,
                                    args.model_output_size, GL_RGBA)
     else:

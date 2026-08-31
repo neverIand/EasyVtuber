@@ -2,13 +2,11 @@ from multiprocessing import Process, shared_memory, Value
 from pynput.mouse import Controller
 import numpy as np
 import time
-import sounddevice as sd
 from .args import args
 from .utils.shared_mem_guard import SharedMemoryGuard
 from .utils.timer_wait import wait_until
 from OneEuroFilter import OneEuroFilter
 from .utils.fps import FPS
-from .utils.timer_wait import wait_until
 
 class MouseClientProcess(Process):
     def __init__(self, pose_position_shm: shared_memory.SharedMemory):
@@ -47,6 +45,8 @@ class MouseClientProcess(Process):
         posLimit = [int(x) for x in args.mouse_input.split(',')]
         
         if args.mouse_audio_input:
+            import sounddevice as sd
+
             # 启动音频流 (使用 WASAPI)
             try:
                 # 获取默认输入设备（麦克风或系统音频）
