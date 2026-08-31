@@ -173,7 +173,7 @@ class OptionPanel(wx.Panel):
         mainSizer.Add(leftSizer, 1, wx.EXPAND | wx.ALL, 0)
         if self.type == 0:
             self.control = wx.Choice(self, wx.ID_ANY, choices=choices)
-            self.control.SetMinSize(wx.Size(300, -1))
+            self.control.SetMinSize(self.FromDIP(wx.Size(300, -1)))
             try:
                 if default is not None:
                     if self.mapping:
@@ -195,7 +195,7 @@ class OptionPanel(wx.Panel):
                 pass
         elif self.type == 2:
             self.control = wx.TextCtrl(self, wx.ID_ANY)
-            self.control.SetMinSize(wx.Size(300, -1))
+            self.control.SetMinSize(self.FromDIP(wx.Size(300, -1)))
             try:
                 if default is not None:
                     if self.mapping:
@@ -209,11 +209,20 @@ class OptionPanel(wx.Panel):
             sliderSizer = wx.BoxSizer(wx.HORIZONTAL)
             self.control = wx.Slider(self, wx.ID_ANY, value=50, minValue=0, maxValue=100, 
                                     style=wx.SL_HORIZONTAL)
-            self.control.SetMinSize(wx.Size(250, -1))
+            self.control.SetMinSize(self.FromDIP(wx.Size(250, -1)))
             
-            # Add a label to show the float value
-            self.valueLabel = wx.StaticText(self, wx.ID_ANY, "0.50")
-            self.valueLabel.SetMinSize(wx.Size(50, -1))
+            # Keep enough DPI-aware room for the longest formatted value
+            # ("100.0000") and align changing numbers by their right edge.
+            self.valueLabel = wx.StaticText(
+                self,
+                wx.ID_ANY,
+                "0.0000",
+                style=wx.ALIGN_RIGHT | wx.ST_NO_AUTORESIZE,
+            )
+            self.valueLabel.SetMinSize(self.FromDIP(wx.Size(80, -1)))
+            valueFont = self.valueLabel.GetFont()
+            valueFont.SetFamily(wx.FONTFAMILY_TELETYPE)
+            self.valueLabel.SetFont(valueFont)
             
             try:
                 if default is not None:
@@ -229,13 +238,23 @@ class OptionPanel(wx.Panel):
             self.control.Bind(wx.EVT_SLIDER, onSliderChange)
             
             sliderSizer.Add(self.control, 1, wx.ALIGN_CENTER_VERTICAL)
-            sliderSizer.Add(self.valueLabel, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 10)
-            mainSizer.Add(sliderSizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
+            sliderSizer.Add(self.valueLabel, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, self.FromDIP(10))
+            mainSizer.Add(
+                sliderSizer,
+                0,
+                wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT,
+                self.FromDIP(12),
+            )
             # Skip the normal control addition below
             self.control._slider_added = True
 
         if not (self.type == 3 and hasattr(self.control, '_slider_added')):
-            mainSizer.Add(self.control, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
+            mainSizer.Add(
+                self.control,
+                0,
+                wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT,
+                self.FromDIP(12),
+            )
         # self.SetBackgroundColour('#000000') 
 
     def GetValue(self):
@@ -425,7 +444,7 @@ class LauncherPanel(wx.Panel):
                   type=1)
 
         addOption('frame_rate_limit', title='FPS Limit', desc='选择帧率限制目标',
-                  choices=['10', '15', '20', '30', '60'])
+                  choices=['10', '15', '20', '24', '30', '60'])
         addOption('gpu_duty_limit', title='GPU Duty Limit',
                   desc='限制同步推理的持续占空比\n不保证消除瞬时100%峰值',
                   choices=['70%', '80%', '90%', '95%', '100% (Off)'],
@@ -819,7 +838,7 @@ class MainFrame(wx.Frame):
         panel = LauncherPanel(self)
         self.fSizer.Add(panel, 1, wx.EXPAND)
         self.SetSizer(self.fSizer)
-        self.SetMinSize(wx.Size(600, 0))
+        self.SetMinSize(self.FromDIP(wx.Size(640, 0)))
         self.Fit()
         self.Centre()
 
