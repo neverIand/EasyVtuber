@@ -439,8 +439,8 @@ class LauncherPanel(wx.Panel):
                   choices=['Spout2', 'OBS VirtualCam', 'Debug Output'],
                   mapping=[0, 1, 2])
 
-        addOption('use_tensorrt', title='TensorRT加速',
-                  desc='需要更长启动和预热时间（仅NVIDIA显卡支持）',
+        addOption('use_tensorrt', title='TensorRT Backend',
+                  desc='关闭时仍使用DirectML独显推理\n开启后改用TensorRT（仅NVIDIA）',
                   type=1)
 
         addOption('frame_rate_limit', title='FPS Limit', desc='选择帧率限制目标',
@@ -471,7 +471,7 @@ class LauncherPanel(wx.Panel):
         addOption('ram_cache_size', title='RAM Cache Size', desc='分配内存缓存大小\n用于存储最终运算结果',
                   choices=['Off', '1GB', '2GB', '4GB', '8GB', '16GB'],
                   mapping=['0b', '1gb', '2gb', '4gb', '8gb', '16gb'])
-        addOption('vram_cache_size', title='VRAM Cache Size', desc='分配显存缓存大小\n用于存储中间结果',
+        addOption('vram_cache_size', title='VRAM Cache Size', desc='仅TensorRT生效\n用于缓存模型中间结果',
                   choices=['Off', '1GB', '2GB', '4GB', '8GB', '16GB'],
                   mapping=['0b', '1gb', '2gb', '4gb', '8gb', '16gb'])
         addOption('cache_simplify', title='Input Simplify',

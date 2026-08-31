@@ -78,6 +78,11 @@ class ModelClientProcess(Process):
                             sr_x4=args.sr_x4,
                             sr_a4k=args.sr_a4k,
                             )
+        print(
+            'Inference backend: {}'.format(
+                'TensorRT' if args.use_tensorrt else 'DirectML'
+            )
+        )
         model.setImage(self.input_image)
         model_infer_average_interval.start()
         model.inference([np.zeros((1, 45), dtype=np.float32)])  # Warm up

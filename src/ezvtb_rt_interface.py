@@ -1,6 +1,10 @@
-import os 
+import importlib
+import os
 import sys
+
 from .args import args
+
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 ezvtb_path = os.path.join(dir_path, "..", "ezvtuber-rt")
 ezvtb_main_path = os.path.join(dir_path, "..", 'ezvtuber-rt-main')
@@ -14,8 +18,23 @@ else:
 if project_path not in sys.path:
     sys.path.append(project_path)
 
-# Initialize model data path to point to data/models directory
-import ezvtb_rt
+# Initialize model data path to point to data/models directory.  The runtime
+# package currently imports its TensorRT bootstrap eagerly, which initializes
+# PyCUDA even when the application is about to select CoreORT.  In DirectML
+# mode, temporarily mark that internal module unavailable so the package takes
+# its existing "CoreTRT disabled" branch without loading CUDA/TensorRT.
+_trt_bootstrap_module = 'ezvtb_rt.trt_utils'
+_block_trt_bootstrap = (
+    not args.use_tensorrt and _trt_bootstrap_module not in sys.modules
+)
+if _block_trt_bootstrap:
+    sys.modules[_trt_bootstrap_module] = None
+try:
+    ezvtb_rt = importlib.import_module('ezvtb_rt')
+finally:
+    if _block_trt_bootstrap:
+        sys.modules.pop(_trt_bootstrap_module, None)
+
 models_path = os.path.join(dir_path, '..', 'data', 'models')
 ezvtb_rt.init_model_path(models_path)
 
@@ -69,4 +88,3 @@ def get_core(
         use_eyebrow=model_use_eyebrow,
     )
     return core
-    
