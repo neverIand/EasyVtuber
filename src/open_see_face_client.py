@@ -1,11 +1,12 @@
 from multiprocessing import Process, Value, shared_memory
 from .args import args
+import math
 import socket
-import struct
 import numpy as np
 from .utils.shared_mem_guard import SharedMemoryGuard
 from .utils.fps import FPS
 from .utils.filter import OneEuroFilterNumpy
+from .utils.open_see_face import parse_open_see_face_packet
 from OneEuroFilter import OneEuroFilter
 import time
 
@@ -38,7 +39,8 @@ class OSFClientProcess(Process):
             frame_count += 1
 
         position_vector_0 = None
-        position_vector = [0, 0, 0, 1]
+        position_vector = np.array([0, 0, 0, 1], dtype=np.float32)
+        model_input_arr = np.zeros(45, dtype=np.float32)
         # 呼吸循环参数
         breath_start_time = time.perf_counter()
         pose_filter = OneEuroFilterNumpy(freq=input_fps.view(), mincutoff=args.filter_min_cutoff, beta=args.filter_beta)
@@ -56,126 +58,52 @@ class OSFClientProcess(Process):
             self.fps.value = input_fps()
 
             try:
-                osf_raw = (struct.unpack('=di2f2fB1f4f3f3f68f136f210f14f', socket_bytes))
-                # print(osf_raw[432:])
-                data = {}
-                OpenSeeDataIndex = [
-                    'time',
-                    'id',
-                    'cameraResolutionW',
-                    'cameraResolutionH',
-                    'rightEyeOpen',
-                    'leftEyeOpen',
-                    'got3DPoints',
-                    'fit3DError',
-                    'rawQuaternionX',
-                    'rawQuaternionY',
-                    'rawQuaternionZ',
-                    'rawQuaternionW',
-                    'rawEulerX',
-                    'rawEulerY',
-                    'rawEulerZ',
-                    'translationY',
-                    'translationX',
-                    'translationZ',
-                ]
-                for i in range(len(OpenSeeDataIndex)):
-                    data[OpenSeeDataIndex[i]] = osf_raw[i]
-                data['translationY'] *= -1
-                data['translationZ'] *= -1
-                data['rotationY'] = data['rawEulerY'] - 10
-                data['rotationX'] = (-data['rawEulerX'] + 360) % 360 - 180
-                data['rotationZ'] = (data['rawEulerZ'] - 90)
-                OpenSeeFeatureIndex = [
-                    'EyeLeft',
-                    'EyeRight',
-                    'EyebrowSteepnessLeft',
-                    'EyebrowUpDownLeft',
-                    'EyebrowQuirkLeft',
-                    'EyebrowSteepnessRight',
-                    'EyebrowUpDownRight',
-                    'EyebrowQuirkRight',
-                    'MouthCornerUpDownLeft',
-                    'MouthCornerInOutLeft',
-                    'MouthCornerUpDownRight',
-                    'MouthCornerInOutRight',
-                    'MouthOpen',
-                    'MouthWide'
-                ]
+                data = parse_open_see_face_packet(socket_bytes)
             except Exception:
                 print("OpenSeeFace data parse error:", socket_bytes)
                 continue
 
-            for i in range(68):
-                data['confidence' + str(i)] = osf_raw[i + 18]
-            for i in range(68):
-                data['pointsX' + str(i)] = osf_raw[i * 2 + 18 + 68]
-                data['pointsY' + str(i)] = osf_raw[i * 2 + 18 + 68 + 1]
-            for i in range(70):
-                data['points3DX' + str(i)] = osf_raw[i * 3 + 18 + 68 + 68 * 2]
-                data['points3DY' + str(i)] = osf_raw[i * 3 + 18 + 68 + 68 * 2 + 1]
-                data['points3DZ' + str(i)] = osf_raw[i * 3 + 18 + 68 + 68 * 2 + 2]
-
-            for i in range(len(OpenSeeFeatureIndex)):
-                data[OpenSeeFeatureIndex[i]] = osf_raw[i + 432]
-            # print(data['rotationX'],data['rotationY'],data['rotationZ'])
-
             # 计算呼吸效果（使用 sin 函数，在 breath_cycle 时间内从 0 到 1 再到 0）
-            breath_elapsed = (time.perf_counter() - breath_start_time) % args.breath_cycle
-            # 使用 sin 函数，让值在一个周期内从 0 -> 1 -> 0
-            # sin 在 0 到 π 之间从 0 到 1 到 0
-            breath_value = np.sin(breath_elapsed / args.breath_cycle * np.pi)
+            if math.isfinite(args.breath_cycle):
+                breath_elapsed = (time.perf_counter() - breath_start_time) % args.breath_cycle
+                # 使用 sin 函数，让值在一个周期内从 0 -> 1 -> 0
+                # sin 在 0 到 π 之间从 0 到 1 到 0
+                breath_value = np.sin(breath_elapsed / args.breath_cycle * np.pi)
+            else:
+                breath_value = 0.0
 
-            a = np.array([
-                data['points3DX66'] - data['points3DX68'] + data['points3DX67'] - data['points3DX69'],
-                data['points3DY66'] - data['points3DY68'] + data['points3DY67'] - data['points3DY69'],
-                data['points3DZ66'] - data['points3DZ68'] + data['points3DZ67'] - data['points3DZ69']
-            ])
-            a = (a / np.linalg.norm(a))
-            data['eyeRotationX'] = a[0]
-            data['eyeRotationY'] = a[1]
-
-            eyebrow_vector = [0.0] * 12
-            mouth_eye_vector = [0.0] * 27
-            pose_vector = [0.0] * 6
-
-            mouth_eye_vector[2] = 1 - data['leftEyeOpen']
-            mouth_eye_vector[3] = 1 - data['rightEyeOpen']
-
-            mouth_eye_vector[14] = max(data['MouthOpen'], 0) * 2 # Open larger mouth
-            # print(mouth_eye_vector[14])
-
-            mouth_eye_vector[25] = iris_x_filter(-data['eyeRotationY'] * 3 - (data['rotationX']) / 57.3 * 1.5, timestamp=time.perf_counter())
-            mouth_eye_vector[26] = iris_y_filter(data['eyeRotationX'] * 3 + (data['rotationY']) / 57.3, timestamp=time.perf_counter())
-            # print(mouth_eye_vector[25:27])
-            eyebrow_vector[6] = data['EyebrowUpDownLeft']
-            eyebrow_vector[7] = data['EyebrowUpDownRight']
-            # print(data['EyebrowUpDownLeft'],data['EyebrowUpDownRight'])
+            model_input_arr.fill(0.0)
+            model_input_arr[14] = 1 - data.left_eye_open
+            model_input_arr[15] = 1 - data.right_eye_open
+            model_input_arr[26] = max(data.mouth_open, 0) * 2 # Open larger mouth
+            model_input_arr[37] = iris_x_filter(
+                -data.eye_rotation_y * 3 - data.rotation_x / 57.3 * 1.5,
+                timestamp=time.perf_counter(),
+            )
+            model_input_arr[38] = iris_y_filter(
+                data.eye_rotation_x * 3 + data.rotation_y / 57.3,
+                timestamp=time.perf_counter(),
+            )
+            model_input_arr[6] = data.eyebrow_left
+            model_input_arr[7] = data.eyebrow_right
             if rotation_offset is None:
-                rotation_offset = [data['rotationX'], data['rotationY'], data['rotationZ']]
-            pose_vector[0] = (data['rotationX'] - rotation_offset[0]) / 57.3 * 3
-            pose_vector[1] = -(data['rotationY'] - rotation_offset[1]) / 57.3 * 3
-            pose_vector[2] = (data['rotationZ'] - rotation_offset[2]) / 57.3 * 2
-            pose_vector[3] = pose_vector[1]
-            pose_vector[4] = pose_vector[2]
-            pose_vector[5] = breath_value
+                rotation_offset = [data.rotation_x, data.rotation_y, data.rotation_z]
+            model_input_arr[39] = (data.rotation_x - rotation_offset[0]) / 57.3 * 3
+            model_input_arr[40] = -(data.rotation_y - rotation_offset[1]) / 57.3 * 3
+            model_input_arr[41] = (data.rotation_z - rotation_offset[2]) / 57.3 * 2
+            model_input_arr[42] = model_input_arr[40]
+            model_input_arr[43] = model_input_arr[41]
+            model_input_arr[44] = breath_value
 
-            if position_vector_0 == None: #Provide an initial reference point
-                position_vector_0 = [0, 0, 0, 1]
-                position_vector_0[0] = data['translationX']
-                position_vector_0[1] = data['translationY']
-                position_vector_0[2] = data['translationZ']
+            if position_vector_0 is None: #Provide an initial reference point
+                position_vector_0 = [data.translation_x, data.translation_y, data.translation_z]
             #Compute relative translation
-            position_vector[0] = -(data['translationX'] - position_vector_0[0]) * 0.1
-            position_vector[1] = -(data['translationY'] - position_vector_0[1]) * 0.1
-            position_vector[2] = -(data['translationZ'] - position_vector_0[2]) * 0.1
-
-            model_input_arr = eyebrow_vector
-            model_input_arr.extend(mouth_eye_vector)
-            model_input_arr.extend(pose_vector)
+            position_vector[0] = -(data.translation_x - position_vector_0[0]) * 0.1
+            position_vector[1] = -(data.translation_y - position_vector_0[1]) * 0.1
+            position_vector[2] = -(data.translation_z - position_vector_0[2]) * 0.1
 
             with pose_position_shm_guard.lock():
-                np_pose_shm[:] = pose_filter(np.array(model_input_arr, dtype=np.float32))
-                np_position_shm[:] = position_filter(np.array(position_vector, dtype=np.float32))
+                np_pose_shm[:] = pose_filter(model_input_arr)
+                np_position_shm[:] = position_filter(position_vector)
                 # np_pose_shm[:] = np.array(model_input_arr, dtype=np.float32)
                 # np_position_shm[:] = np.array(position_vector, dtype=np.float32)
