@@ -5,6 +5,7 @@ import math
 import numpy as np
 from .args import args
 from .utils.shared_mem_guard import SharedMemoryGuard
+from .utils.camera_frame import prepare_mediapipe_rgb
 from .utils.pose import get_pose
 from .utils.fps import FPS
 from .utils.filter import OneEuroFilterNumpy
@@ -46,15 +47,15 @@ class FaceMeshClientProcess(Process):
         print("Webcam Input Running at {:.2f} FPS".format(input_fps.view()))
         position_vector = np.array([0, 0, 0, 1], dtype=np.float32)
         model_input_arr = np.zeros(45, dtype=np.float32)
+        rgb_frame = None
         while True:
             ret, frame = cap.read()
             if not ret:
                 raise Exception("Can't receive frame (stream end?).")
             self.fps.value = input_fps()
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            # MediaPipe can reference immutable contiguous input instead of
-            # copying every camera frame into a new ImageFrame packet.
-            rgb_frame.flags.writeable = False
+            # Reuse the RGB frame allocation; MediaPipe processes it
+            # synchronously before the next camera frame overwrites it.
+            rgb_frame = prepare_mediapipe_rgb(frame, rgb_frame)
             results = facemesh.process(rgb_frame)
             if results.multi_face_landmarks is None:
                 continue
