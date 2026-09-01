@@ -57,6 +57,13 @@ class ModelClientProcess(Process):
         pipeline_fps = FPS()
         gpu_duty_limiter = GpuDutyCycleLimiter(args.gpu_duty_limit)
 
+        # TensorRT engine construction and execution-context JIT happen before
+        # the per-frame limiter can measure inference. Pass the same safety
+        # target into the TensorRT layer so those indivisible startup calls are
+        # followed by a proportional cooldown as well.
+        if args.use_tensorrt:
+            os.environ['EZVTB_GPU_DUTY_LIMIT'] = str(args.gpu_duty_limit)
+
         # Use unified ezvtb_rt interface for both THA3 and THA4
         model = get_core(use_tensorrt=args.use_tensorrt,
                             model_version=args.model_version,

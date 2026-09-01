@@ -18,22 +18,8 @@ else:
 if project_path not in sys.path:
     sys.path.append(project_path)
 
-# Initialize model data path to point to data/models directory.  The runtime
-# package currently imports its TensorRT bootstrap eagerly, which initializes
-# PyCUDA even when the application is about to select CoreORT.  In DirectML
-# mode, temporarily mark that internal module unavailable so the package takes
-# its existing "CoreTRT disabled" branch without loading CUDA/TensorRT.
-_trt_bootstrap_module = 'ezvtb_rt.trt_utils'
-_block_trt_bootstrap = (
-    not args.use_tensorrt and _trt_bootstrap_module not in sys.modules
-)
-if _block_trt_bootstrap:
-    sys.modules[_trt_bootstrap_module] = None
-try:
-    ezvtb_rt = importlib.import_module('ezvtb_rt')
-finally:
-    if _block_trt_bootstrap:
-        sys.modules.pop(_trt_bootstrap_module, None)
+# The forked runtime package now loads CUDA and DirectML backends lazily.
+ezvtb_rt = importlib.import_module('ezvtb_rt')
 
 models_path = os.path.join(dir_path, '..', 'data', 'models')
 ezvtb_rt.init_model_path(models_path)
@@ -61,13 +47,13 @@ def get_core(
         ):
     if use_tensorrt:
         try:
-            from ezvtb_rt.core_trt import CoreTRT as Core
-        except:
-            print("TensorRT is not available, fallback to ONNX Runtime.")
+            Core = ezvtb_rt.CoreTRT
+        except Exception as error:
+            print(f"TensorRT is not available, fallback to ONNX Runtime: {error}")
             args.use_tensorrt = False
-            from ezvtb_rt.core_ort import CoreORT as Core
+            Core = ezvtb_rt.CoreORT
     else:
-        from ezvtb_rt.core_ort import CoreORT as Core
+        Core = ezvtb_rt.CoreORT
     core = Core(
         tha_model_version=model_version,
         tha_model_seperable=model_seperable,
