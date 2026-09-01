@@ -676,7 +676,7 @@ class LauncherPanel(wx.Panel):
         try:
             cache = _get_trt_cache_module()
             cache_dir = cache.get_cache_dir().resolve()
-            lock_files = cache.list_cache_locks(cache_dir)
+            lock_files = cache.list_active_cache_locks(cache_dir)
             engine_files = [
                 path
                 for path in cache.list_cache_files(cache_dir)
@@ -754,7 +754,7 @@ class LauncherPanel(wx.Panel):
             cache = _get_trt_cache_module()
             # Ensure older %TEMP% caches are safely migrated before inspection.
             cache_dir = cache.get_cache_dir().resolve()
-            lock_files = cache.list_cache_locks(cache_dir)
+            lock_files = cache.list_active_cache_locks(cache_dir)
             file_count, total_bytes = cache.get_cache_usage(cache_dir)
         except Exception as error:
             wx.MessageBox(
