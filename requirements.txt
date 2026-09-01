@@ -12,7 +12,6 @@ wxpython
 onnx 
 onnxruntime-directml 
 tqdm
-torch
 OneEuroFilter
 sounddevice
 brotli

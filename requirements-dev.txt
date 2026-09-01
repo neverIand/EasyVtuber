@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Optional: only the legacy PyTorch models, training tools, and ONNX export
+# scripts under tha2/tha3/tha4 require this package. The launcher and the
+# TensorRT/DirectML runtime do not import it.
+torch

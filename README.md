@@ -201,8 +201,14 @@ git submodule update --recursive --remote
 ```
 
 ### 安装环境
+普通运行（包括 TensorRT、DirectML 和 iFacialMocap）不需要安装 PyTorch：
 ```
 pip install -r requirements.txt --no-warn-script-location
+```
+
+只有在使用旧版 PyTorch 模型、训练代码或 ONNX 导出脚本时，才安装开发依赖：
+```
+pip install -r requirements-dev.txt --no-warn-script-location
 ```
 
 ### 下载模型
