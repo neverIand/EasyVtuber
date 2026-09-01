@@ -9,11 +9,25 @@ from multiprocessing import shared_memory
 from .utils.timer_wait import wait_until
 from PIL import Image
 from .utils.fps import FPS
+from .utils.student_models import student_character_path
 
 
 def main():
     # Load character image
-    img = Image.open(f"data/images/{args.character}.png")
+    if args.model_version == 'v4_student':
+        if args.model_name:
+            character_path = student_character_path(
+                'data/models/custom_tha4_models',
+                args.model_name,
+            )
+            character_label = f'THA4 Student ({args.model_name})'
+        else:
+            character_path = 'data/models/tha4_student/character.png'
+            character_label = 'THA4 Student'
+    else:
+        character_path = f"data/images/{args.character}.png"
+        character_label = args.character
+    img = Image.open(character_path)
     img = img.convert('RGBA')
     img = clear_transparent_rgb(img)
     ow, oh = img.size
@@ -30,7 +44,7 @@ def main():
     input_image = np.array(img)
     input_image = cv2.cvtColor(input_image, cv2.COLOR_RGBA2BGRA)
 
-    print("Character Image Loaded:", args.character)
+    print("Character Image Loaded:", character_label)
 
     pose_position_shm = shared_memory.SharedMemory(create=True,
                                                    size=(45 + 4) * 4)  # 45 floats for pose, 4 floats for position

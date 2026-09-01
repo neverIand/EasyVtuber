@@ -8,6 +8,8 @@ import wx
 import json
 import sys
 
+from src.utils.student_models import scan_student_models
+
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 p = None
 cache_simplify_map = {
@@ -134,32 +136,16 @@ def refreshList():
 def scanStudentModels():
     """Scan custom_tha4_models directory for student models"""
     global studentModelList, studentModelCharacterMap
-    studentModelList = []
-    studentModelCharacterMap = {}
-
     custom_models_path = 'data/models/custom_tha4_models'
-    if os.path.exists(custom_models_path):
-        try:
-            for model_name in os.listdir(custom_models_path):
-                model_path = os.path.join(custom_models_path, model_name)
-                if os.path.isdir(model_path):
-                    # Check if it's a valid student model
-                    face_trt = os.path.join(model_path, 'face_morpher.trt')
-                    body_trt = os.path.join(model_path, 'body_morpher.trt')
-                    character_png = os.path.join(model_path,
-                                                 'character.png')
-                    has_trt = (os.path.exists(face_trt) and
-                               os.path.exists(body_trt))
-                    has_character = os.path.exists(character_png)
-
-                    if has_trt and has_character:
-                        studentModelList.append(model_name)
-                        studentModelCharacterMap[model_name] = model_name
-        except Exception:
-            pass
-
-    # Sort alphabetically
-    studentModelList.sort()
+    studentModelList = scan_student_models(custom_models_path)
+    studentModelCharacterMap = {
+        model_name: os.path.join(
+            custom_models_path,
+            model_name,
+            'character.png',
+        )
+        for model_name in studentModelList
+    }
 
 
 refreshList()
@@ -514,7 +500,7 @@ class LauncherPanel(wx.Panel):
                   desc='选择使用的模型\nStandard Full精度较高性能较低',
                   choices=model_choices,
                   mapping=model_mapping)
-        addOption('ram_cache_size', title='RAM Cache Size', desc='分配内存缓存大小\n用于存储最终运算结果',
+        addOption('ram_cache_size', title='RAM Cache Size', desc='普通帧与超分帧共享的内存缓存总预算\n开启超分后按每帧字节量1:4拆分',
                   choices=['Off', '1GB', '2GB', '4GB', '8GB', '16GB'],
                   mapping=['0b', '1gb', '2gb', '4gb', '8gb', '16gb'])
         addOption('vram_cache_size', title='VRAM Cache Size', desc='仅TensorRT生效\n用于缓存模型中间结果',
