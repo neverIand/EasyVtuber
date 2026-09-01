@@ -52,6 +52,13 @@ class ModelClientProcess(Process):
                                                        (i + 1) * self.alpha_width_scale * args.model_output_size * args.model_output_size * self.ret_channels])
             for i in range(args.interpolation_scale)
         ]
+        postprocess_bgra = np.empty(
+            (args.model_output_size, args.model_output_size, 4),
+            dtype=np.uint8,
+        )
+        postprocess_rgba = (
+            np.empty_like(postprocess_bgra) if args.alpha_split else None
+        )
 
         model_infer_average_interval: Interval = Interval()
         pipeline_fps = FPS()
@@ -79,6 +86,7 @@ class ModelClientProcess(Process):
                             interpolation_half=args.interpolation_half,
 
                             cacher_ram_size=args.max_ram_cache_len,
+                            cache_storage_mode=args.ram_cache_mode,
 
                             use_sr=args.use_sr,
                             sr_half=args.sr_half,
@@ -93,7 +101,10 @@ class ModelClientProcess(Process):
         model.setImage(self.input_image)
         model_infer_average_interval.start()
         warmup_started_at = time.perf_counter()
-        model.inference([np.zeros((1, 45), dtype=np.float32)])  # Warm up
+        model.inference(
+            [np.zeros((1, 45), dtype=np.float32)],
+            copy_output=False,
+        )  # Warm up
         gpu_duty_limiter.record_inference(warmup_started_at)
         model_infer_average_interval.stop()
         self.last_model_interval.value = model_infer_average_interval.last()
@@ -125,7 +136,10 @@ class ModelClientProcess(Process):
             gpu_duty_limiter.wait()
             model_infer_average_interval.start()
             inference_started_at = time.perf_counter()
-            output_images = model.inference(input_poses)
+            # Post-processing completes before the next inference, so the
+            # TensorRT host buffer can be consumed directly.  Public runtime
+            # callers still receive a defensive copy by default.
+            output_images = model.inference(input_poses, copy_output=False)
             gpu_duty_limiter.record_inference(inference_started_at)
 
             if args.max_ram_cache_len > 0:
@@ -143,19 +157,30 @@ class ModelClientProcess(Process):
                 total = hits + miss
                 self.gpu_cache_hit_ratio.value = (hits / total) if total > 0 else 0.0
 
-            output_images = self.post_process_ret(np_position, output_images)
+            self.post_process_into(
+                np_position,
+                output_images,
+                np_ret_shms,
+                ret_batch_shm_guard,
+                postprocess_bgra,
+                postprocess_rgba,
+            )
 
             self.average_model_interval.value = model_infer_average_interval.stop()
             self.last_model_interval.value = model_infer_average_interval.last()
 
             self.pipeline_fps_number.value = pipeline_fps()
-            for i in range(args.interpolation_scale):
-                with ret_batch_shm_guard[i].lock(): # get pressure from main process if ret not consumed
-                    np_ret_shms[i][:, :, :] = output_images[i]
-
             self.finish_event.set() # Back pressure main process loop if infer slow
 
-    def post_process_ret(self, np_position: np.ndarray, output_images: np.ndarray) -> List[np.ndarray]:
+    def post_process_into(
+        self,
+        np_position: np.ndarray,
+        output_images: np.ndarray,
+        destinations: List[np.ndarray],
+        destination_guards: List[SharedMemoryGuard],
+        bgra_work: np.ndarray,
+        rgba_work: np.ndarray | None,
+    ) -> None:
         transform = build_output_transform(
             np_position,
             output_images[0].shape,
@@ -163,53 +188,117 @@ class ModelClientProcess(Process):
             args.bongo,
         )
 
-        ret = []
         for i in range(output_images.shape[0]):
-            # Debug overlays mutate the frame, so preserve the model/cache buffer
-            # while still avoiding the much more expensive identity warp.
+            # Preserve the existing output back-pressure contract: the model
+            # process may not overwrite a shared slot until main releases it.
+            with destination_guards[i].lock():
+                self._post_process_frame_into(
+                    output_images[i],
+                    transform,
+                    destinations[i],
+                    bgra_work,
+                    rgba_work,
+                )
+
+    def _draw_debug_overlay(self, bgra_image: np.ndarray) -> None:
+        # Keep text, order, rounding, and coordinates byte-for-byte compatible
+        # with the legacy post-processing path.
+        y = 16
+        cv2.putText(bgra_image, 'INFER/S: {:.4f}'.format(self.pipeline_fps_number.value), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
+        y += 16
+        cv2.putText(bgra_image, 'INPUT/S: {:.4f}'.format(self.input_fps.value), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
+        y += 16
+        cv2.putText(bgra_image, 'OUTPUT/S: {:.4f}'.format(self.output_pipeline_fps.value), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
+        y += 16
+        cv2.putText(bgra_image, 'CALC: {:.2f} ms'.format(self.average_model_interval.value * 1000), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
+        y += 16
+        if args.max_ram_cache_len > 0:
+            cv2.putText(bgra_image, 'MEM CACHE: {:.2f}%'.format(self.cache_hit_ratio.value * 100), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
+            y += 16
+        if args.max_gpu_cache_len > 0:
+            cv2.putText(bgra_image, 'GPU CACHE: {:.2f}%'.format(self.gpu_cache_hit_ratio.value * 100), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
+
+    def _post_process_frame_into(
+        self,
+        output_image: np.ndarray,
+        transform: np.ndarray | None,
+        destination: np.ndarray,
+        bgra_work: np.ndarray,
+        rgba_work: np.ndarray | None,
+    ) -> np.ndarray:
+        if transform is None and not args.output_debug:
+            bgra_image = output_image
+        else:
             bgra_image = apply_output_transform(
-                output_images[i],
+                output_image,
                 transform,
-                copy_identity=args.output_debug,
+                dst=bgra_work,
             )
 
-            if args.output_debug:
-                # 与 main.py 输出格式一致
-                y = 16
-                cv2.putText(bgra_image, 'INFER/S: {:.4f}'.format(self.pipeline_fps_number.value), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
-                y += 16
-                cv2.putText(bgra_image, 'INPUT/S: {:.4f}'.format(self.input_fps.value), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
-                y += 16
-                cv2.putText(bgra_image, 'OUTPUT/S: {:.4f}'.format(self.output_pipeline_fps.value), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
-                y += 16
-                cv2.putText(bgra_image, 'CALC: {:.2f} ms'.format(self.average_model_interval.value * 1000), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
-                y += 16
-                if args.max_ram_cache_len > 0:
-                    cv2.putText(bgra_image, 'MEM CACHE: {:.2f}%'.format(self.cache_hit_ratio.value * 100), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
-                    y += 16
-                if args.max_gpu_cache_len > 0:
-                    cv2.putText(bgra_image, 'GPU CACHE: {:.2f}%'.format(self.gpu_cache_hit_ratio.value * 100), (0, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 1)
-                
-            if args.alpha_split:
-                rgba_image = cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2RGBA)
-                alpha_channel = rgba_image[:, :, 3]
-                rgb_channels = rgba_image[:,:,:3]
-                alpha_image = cv2.cvtColor(alpha_channel, cv2.COLOR_GRAY2RGB)
-                rgb_channels = cv2.hconcat([rgb_channels, alpha_image])
+        if args.output_debug:
+            self._draw_debug_overlay(bgra_image)
 
+        if args.alpha_split:
+            if rgba_work is None:
+                raise ValueError('rgba_work is required for alpha-split output')
+            cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2RGBA, dst=rgba_work)
+            width = output_image.shape[1]
+            left = destination[:, :width, :]
+            right = destination[:, width:, :]
             if args.output_debug:
-                if args.alpha_split:
-                    bgr_channels = cv2.cvtColor(rgb_channels, cv2.COLOR_RGB2BGR)
-                else:
-                    bgr_channels = cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2BGR)
-                ret.append(bgr_channels)
-            elif args.output_virtual_cam:
-                if not args.alpha_split:
-                    rgb_channels = cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2RGB)
-                ret.append(rgb_channels)
+                cv2.cvtColor(
+                    rgba_work[:, :, :3],
+                    cv2.COLOR_RGB2BGR,
+                    dst=left,
+                )
             else:
-                rgba_image = cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2RGBA)
-                ret.append(rgba_image)
+                np.copyto(left, rgba_work[:, :, :3])
+            cv2.cvtColor(
+                rgba_work[:, :, 3],
+                cv2.COLOR_GRAY2RGB,
+                dst=right,
+            )
+        elif args.output_debug:
+            cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2BGR, dst=destination)
+        elif args.output_virtual_cam:
+            cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2RGB, dst=destination)
+        else:
+            cv2.cvtColor(bgra_image, cv2.COLOR_BGRA2RGBA, dst=destination)
+        return destination
+
+    def post_process_ret(self, np_position: np.ndarray, output_images: np.ndarray) -> List[np.ndarray]:
+        """Compatibility wrapper that allocates outputs for external callers.
+
+        The live process uses :meth:`post_process_into` to write shared memory
+        directly and reuse both work buffers across frames.
+        """
+        transform = build_output_transform(
+            np_position,
+            output_images[0].shape,
+            args.extend_movement,
+            args.bongo,
+        )
+        bgra_work = np.empty_like(output_images[0])
+        rgba_work = np.empty_like(output_images[0]) if args.alpha_split else None
+
+        ret = []
+        for i in range(output_images.shape[0]):
+            height, width = output_images[i].shape[:2]
+            output_width = width * (2 if args.alpha_split else 1)
+            output_channels = 3 if args.output_debug or args.output_virtual_cam else 4
+            destination = np.empty(
+                (height, output_width, output_channels),
+                dtype=np.uint8,
+            )
+            ret.append(
+                self._post_process_frame_into(
+                    output_images[i],
+                    transform,
+                    destination,
+                    bgra_work,
+                    rgba_work,
+                )
+            )
         return ret
     
 if __name__ == "__main__":

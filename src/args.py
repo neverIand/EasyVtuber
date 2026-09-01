@@ -67,6 +67,12 @@ parser.add_argument('--sr_half', action='store_true')
 parser.add_argument('--sr_a4k', action='store_true')
 
 parser.add_argument('--cache', type=str, default='256mb')
+parser.add_argument(
+    '--ram_cache_mode',
+    choices=('raw', 'brotli'),
+    default='raw',
+    help='Lossless RAM cache storage: raw favors latency, brotli favors capacity',
+)
 
 parser.add_argument('--frame_rate_limit', type=int, default=30)
 parser.add_argument(

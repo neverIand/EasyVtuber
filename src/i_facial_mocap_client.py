@@ -4,7 +4,6 @@ import socket
 import time
 
 import numpy as np
-import tha2.poser.modes.mode_20_wx
 
 from tha2.mocap.ifacialmocap_constants import *
 from .args import args
@@ -16,8 +15,6 @@ from .utils.ifacialmocap import (
 from .utils.shared_mem_guard import SharedMemoryGuard
 
 
-ifm_converter = tha2.poser.modes.mode_20_wx.IFacialMocapPoseConverter20()
-
 class IFMClientProcess(Process):
     def __init__(self, pose_position_shm: shared_memory.SharedMemory):
         super().__init__()
@@ -26,6 +23,12 @@ class IFMClientProcess(Process):
         self.port = int(args.ifm_input.split(':')[1])
         self.fps = Value('f', 0.0)
     def run(self):
+        # Import and construct the SciPy-based converter only in the input
+        # subprocess.  On Windows this keeps the parent/launcher startup path
+        # lightweight while preserving the exact legacy conversion routine.
+        from tha2.poser.modes.mode_20_wx import IFacialMocapPoseConverter20
+
+        ifm_converter = IFacialMocapPoseConverter20()
         pose_position_shm_guard = SharedMemoryGuard(self.pose_position_shm, ctrl_name="pose_position_shm_ctrl")
         np_pose_shm = np.ndarray((45,), dtype=np.float32, buffer=self.pose_position_shm.buf[:45 * 4])
         np_position_shm = np.ndarray((4,), dtype=np.float32, buffer=self.pose_position_shm.buf[45 * 4:45 * 4 + 4 * 4])

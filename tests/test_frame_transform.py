@@ -49,6 +49,29 @@ class FrameTransformTests(unittest.TestCase):
             expected,
         )
 
+    def test_non_identity_transform_can_reuse_destination(self):
+        transform = build_output_transform(
+            np.array([0.08, -0.03, 0.04, 1.0], dtype=np.float32),
+            self.frame.shape,
+            extend_movement=True,
+            bongo=True,
+        )
+        destination = np.empty_like(self.frame)
+        expected = apply_output_transform(self.frame, transform)
+
+        actual = apply_output_transform(self.frame, transform, dst=destination)
+
+        self.assertIs(actual, destination)
+        np.testing.assert_array_equal(actual, expected)
+
+    def test_identity_transform_can_copy_into_destination(self):
+        destination = np.empty_like(self.frame)
+
+        actual = apply_output_transform(self.frame, None, dst=destination)
+
+        self.assertIs(actual, destination)
+        np.testing.assert_array_equal(actual, self.frame)
+
 
 if __name__ == '__main__':
     unittest.main()

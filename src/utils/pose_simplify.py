@@ -1,16 +1,16 @@
 from ..args import args
 import numpy as np
 from functools import lru_cache
+from tha2.mocap.pose_indices import POSE_INDICES_20
 
-# Delay import to avoid loading torch during module initialization
-ifm_converter = None
 
 def _get_ifm_converter():
-    global ifm_converter
-    if ifm_converter is None:
-        import tha2.poser.modes.mode_20_wx
-        ifm_converter = tha2.poser.modes.mode_20_wx.IFacialMocapPoseConverter20()
-    return ifm_converter
+    """Compatibility accessor for the old internal helper.
+
+    Pose simplification only needs the fixed index layout.  Returning the
+    lightweight schema avoids importing SciPy, PyTorch, and legacy THA models.
+    """
+    return POSE_INDICES_20
 
 
 @lru_cache(maxsize=None)

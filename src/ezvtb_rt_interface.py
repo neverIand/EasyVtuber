@@ -39,6 +39,7 @@ def get_core(
         interpolation_half:bool = True, #If using directml+half, there is small numerical error on Nvidia, and huge numerical error on AMD
         #Cacher setting
         cacher_ram_size:float = 2.0,#unit of GigaBytes
+        cache_storage_mode:str = 'raw',
         #SR setting
         use_sr:bool = False,
         sr_x4:bool = True,
@@ -71,6 +72,7 @@ def get_core(
 
         vram_cache_size=model_cache_size,
         cache_max_giga=cacher_ram_size,
+        cache_storage_mode=cache_storage_mode,
         use_eyebrow=model_use_eyebrow,
     )
     return core

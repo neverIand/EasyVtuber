@@ -8,7 +8,7 @@ import scipy.optimize
 
 from tha2.mocap.ifacialmocap_constants import *
 from tha2.mocap.ifacialmocap_pose_converter import IFacialMocapPoseConverter
-from tha2.poser.modes.mode_20 import get_pose_parameters
+from tha2.mocap.pose_indices import POSE_INDICES_20
 
 
 def clamp(x, min_value, max_value):
@@ -93,58 +93,56 @@ class IFacialMocapPoseConverter20Args:
 
 
 class IFacialMocapPoseConverter20(IFacialMocapPoseConverter):
+    pose_size = POSE_INDICES_20.pose_size
+
+    eyebrow_troubled_left_index = POSE_INDICES_20.eyebrow_troubled_left_index
+    eyebrow_troubled_right_index = POSE_INDICES_20.eyebrow_troubled_right_index
+    eyebrow_angry_left_index = POSE_INDICES_20.eyebrow_angry_left_index
+    eyebrow_angry_right_index = POSE_INDICES_20.eyebrow_angry_right_index
+    eyebrow_lowered_left_index = POSE_INDICES_20.eyebrow_lowered_left_index
+    eyebrow_lowered_right_index = POSE_INDICES_20.eyebrow_lowered_right_index
+    eyebrow_raised_left_index = POSE_INDICES_20.eyebrow_raised_left_index
+    eyebrow_raised_right_index = POSE_INDICES_20.eyebrow_raised_right_index
+    eyebrow_happy_left_index = POSE_INDICES_20.eyebrow_happy_left_index
+    eyebrow_happy_right_index = POSE_INDICES_20.eyebrow_happy_right_index
+    eyebrow_serious_left_index = POSE_INDICES_20.eyebrow_serious_left_index
+    eyebrow_serious_right_index = POSE_INDICES_20.eyebrow_serious_right_index
+
+    eye_wink_left_index = POSE_INDICES_20.eye_wink_left_index
+    eye_wink_right_index = POSE_INDICES_20.eye_wink_right_index
+    eye_happy_wink_left_index = POSE_INDICES_20.eye_happy_wink_left_index
+    eye_happy_wink_right_index = POSE_INDICES_20.eye_happy_wink_right_index
+    eye_surprised_left_index = POSE_INDICES_20.eye_surprised_left_index
+    eye_surprised_right_index = POSE_INDICES_20.eye_surprised_right_index
+    eye_relaxed_left_index = POSE_INDICES_20.eye_relaxed_left_index
+    eye_relaxed_right_index = POSE_INDICES_20.eye_relaxed_right_index
+    eye_raised_lower_eyelid_left_index = POSE_INDICES_20.eye_raised_lower_eyelid_left_index
+    eye_raised_lower_eyelid_right_index = POSE_INDICES_20.eye_raised_lower_eyelid_right_index
+
+    iris_small_left_index = POSE_INDICES_20.iris_small_left_index
+    iris_small_right_index = POSE_INDICES_20.iris_small_right_index
+    iris_rotation_x_index = POSE_INDICES_20.iris_rotation_x_index
+    iris_rotation_y_index = POSE_INDICES_20.iris_rotation_y_index
+
+    head_x_index = POSE_INDICES_20.head_x_index
+    head_y_index = POSE_INDICES_20.head_y_index
+    neck_z_index = POSE_INDICES_20.neck_z_index
+
+    mouth_aaa_index = POSE_INDICES_20.mouth_aaa_index
+    mouth_iii_index = POSE_INDICES_20.mouth_iii_index
+    mouth_uuu_index = POSE_INDICES_20.mouth_uuu_index
+    mouth_eee_index = POSE_INDICES_20.mouth_eee_index
+    mouth_ooo_index = POSE_INDICES_20.mouth_ooo_index
+    mouth_lowered_corner_left_index = POSE_INDICES_20.mouth_lowered_corner_left_index
+    mouth_lowered_corner_right_index = POSE_INDICES_20.mouth_lowered_corner_right_index
+    mouth_raised_corner_left_index = POSE_INDICES_20.mouth_raised_corner_left_index
+    mouth_raised_corner_right_index = POSE_INDICES_20.mouth_raised_corner_right_index
+
     def __init__(self, args: Optional[IFacialMocapPoseConverter20Args] = None):
         super().__init__()
         if args is None:
             args = IFacialMocapPoseConverter20Args()
         self.args = args
-        pose_parameters = get_pose_parameters()
-        self.pose_size = 45
-
-        self.eyebrow_troubled_left_index = pose_parameters.get_parameter_index("eyebrow_troubled_left")
-        self.eyebrow_troubled_right_index = pose_parameters.get_parameter_index("eyebrow_troubled_right")
-        self.eyebrow_angry_left_index = pose_parameters.get_parameter_index("eyebrow_angry_left")
-        self.eyebrow_angry_right_index = pose_parameters.get_parameter_index("eyebrow_angry_right")
-        self.eyebrow_happy_left_index = pose_parameters.get_parameter_index("eyebrow_happy_left")
-        self.eyebrow_happy_right_index = pose_parameters.get_parameter_index("eyebrow_happy_right")
-        self.eyebrow_raised_left_index = pose_parameters.get_parameter_index("eyebrow_raised_left")
-        self.eyebrow_raised_right_index = pose_parameters.get_parameter_index("eyebrow_raised_right")
-        self.eyebrow_lowered_left_index = pose_parameters.get_parameter_index("eyebrow_lowered_left")
-        self.eyebrow_lowered_right_index = pose_parameters.get_parameter_index("eyebrow_lowered_right")
-        self.eyebrow_serious_left_index = pose_parameters.get_parameter_index("eyebrow_serious_left")
-        self.eyebrow_serious_right_index = pose_parameters.get_parameter_index("eyebrow_serious_right")
-
-        self.eye_surprised_left_index = pose_parameters.get_parameter_index("eye_surprised_left")  # 0
-        self.eye_surprised_right_index = pose_parameters.get_parameter_index("eye_surprised_right")
-        self.eye_wink_left_index = pose_parameters.get_parameter_index("eye_wink_left")
-        self.eye_wink_right_index = pose_parameters.get_parameter_index("eye_wink_right")
-        self.eye_happy_wink_left_index = pose_parameters.get_parameter_index("eye_happy_wink_left")
-        self.eye_happy_wink_right_index = pose_parameters.get_parameter_index("eye_happy_wink_right")
-        self.eye_relaxed_left_index = pose_parameters.get_parameter_index("eye_relaxed_left")
-        self.eye_relaxed_right_index = pose_parameters.get_parameter_index("eye_relaxed_right")
-        self.eye_raised_lower_eyelid_left_index = pose_parameters.get_parameter_index("eye_raised_lower_eyelid_left")
-        self.eye_raised_lower_eyelid_right_index = pose_parameters.get_parameter_index("eye_raised_lower_eyelid_right")  # 9
-
-        self.iris_small_left_index = pose_parameters.get_parameter_index("iris_small_left")#10
-        self.iris_small_right_index = pose_parameters.get_parameter_index("iris_small_right")
-
-        self.iris_rotation_x_index = pose_parameters.get_parameter_index("iris_rotation_x")
-        self.iris_rotation_y_index = pose_parameters.get_parameter_index("iris_rotation_y")#13
-
-        self.head_x_index = pose_parameters.get_parameter_index("head_x")
-        self.head_y_index = pose_parameters.get_parameter_index("head_y")
-        self.neck_z_index = pose_parameters.get_parameter_index("neck_z")
-
-        self.mouth_aaa_index = pose_parameters.get_parameter_index("mouth_aaa")
-        self.mouth_iii_index = pose_parameters.get_parameter_index("mouth_iii")
-        self.mouth_uuu_index = pose_parameters.get_parameter_index("mouth_uuu")
-        self.mouth_eee_index = pose_parameters.get_parameter_index("mouth_eee")
-        self.mouth_ooo_index = pose_parameters.get_parameter_index("mouth_ooo")
-
-        self.mouth_lowered_corner_left_index = pose_parameters.get_parameter_index("mouth_lowered_corner_left")
-        self.mouth_lowered_corner_right_index = pose_parameters.get_parameter_index("mouth_lowered_corner_right")
-        self.mouth_raised_corner_left_index = pose_parameters.get_parameter_index("mouth_raised_corner_left")
-        self.mouth_raised_corner_right_index = pose_parameters.get_parameter_index("mouth_raised_corner_right")
 
     def convert(self, ifacialmocap_pose: Dict[str, float]) -> List[float]:
         pose = [0.0 for i in range(self.pose_size)]

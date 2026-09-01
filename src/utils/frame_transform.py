@@ -39,8 +39,17 @@ def apply_output_transform(
     frame: np.ndarray,
     transform: Optional[np.ndarray],
     copy_identity: bool = False,
+    dst: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    """Apply an output transform without running warpAffine for an identity matrix."""
+    """Apply an output transform, optionally reusing a destination buffer."""
     if transform is None:
+        if dst is not None:
+            np.copyto(dst, frame)
+            return dst
         return frame.copy() if copy_identity else frame
-    return cv2.warpAffine(frame, transform, (frame.shape[1], frame.shape[0]))
+    return cv2.warpAffine(
+        frame,
+        transform,
+        (frame.shape[1], frame.shape[0]),
+        dst=dst,
+    )
