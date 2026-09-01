@@ -671,6 +671,72 @@ class LauncherPanel(wx.Panel):
 
         self.frame.Bind(wx.EVT_ACTIVATE, onActivate)
 
+    def ConfirmTensorRTStartup(self, gpu_duty_limit):
+        """Require an explicit acknowledgement before TensorRT can start."""
+        try:
+            cache = _get_trt_cache_module()
+            cache_dir = cache.get_cache_dir().resolve()
+            lock_files = cache.list_cache_locks(cache_dir)
+            engine_files = [
+                path
+                for path in cache.list_cache_files(cache_dir)
+                if path.name.endswith('.trt')
+            ]
+            engine_bytes = 0
+            for path in engine_files:
+                try:
+                    engine_bytes += path.stat().st_size
+                except FileNotFoundError:
+                    pass
+        except Exception as error:
+            wx.MessageBox(
+                '无法确认 TensorRT 缓存状态，因此已取消启动。\n\n'
+                f'{error}',
+                'TensorRT 启动保护',
+                wx.OK | wx.ICON_ERROR,
+                self,
+            )
+            return False
+
+        if lock_files:
+            wx.MessageBox(
+                '检测到 TensorRT 引擎构建锁。为避免同时构建或误删缓存，已取消启动。\n\n'
+                f'缓存位置：{cache_dir}\n'
+                f'锁文件：{lock_files[0].name}',
+                'TensorRT 缓存正在使用',
+                wx.OK | wx.ICON_WARNING,
+                self,
+            )
+            return False
+
+        cache_size = _format_cache_size(engine_bytes)
+        if engine_files:
+            cache_summary = (
+                f'当前目录中找到 {len(engine_files)} 个 TensorRT 引擎缓存'
+                f'（约 {cache_size}）。\n'
+                '若所选模型、精度、显卡或 TensorRT 版本与缓存不匹配，'
+                '仍会重新构建所需引擎。'
+            )
+        else:
+            cache_summary = (
+                '当前目录中没有 TensorRT 引擎缓存。\n'
+                '本次启动将构建所选配置需要的引擎。'
+            )
+
+        answer = wx.MessageBox(
+            '即将启动 TensorRT。\n\n'
+            f'{cache_summary}\n\n'
+            f'缓存位置：{cache_dir}\n\n'
+            '引擎构建是不可细分的单次操作，期间 GPU 可能瞬时达到很高负载。\n'
+            f'当前 {gpu_duty_limit}% 持续占空比限制会在构建后冷却，'
+            '但不能硬性限制构建中的瞬时峰值。\n\n'
+            '确定继续吗？',
+            'TensorRT 启动确认',
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+            self,
+        )
+        return answer == wx.YES
+
     def OnClearTensorRTCache(self, e):
         del e
         global p
@@ -789,6 +855,12 @@ class LauncherPanel(wx.Panel):
             self.statusCtrl.Clear()
             self.btnLaunch.SetLabelText("Save & Launch")
         else:
+            if args['use_tensorrt'] and not self.ConfirmTensorRTStartup(
+                    args['gpu_duty_limit']):
+                self.statusCtrl.SetValue('已取消 TensorRT 启动')
+                self.btnLaunch.SetLabelText("Save & Launch")
+                return
+
             # 如果启动器是用pythonw启动的，使用python.exe来启动main以便捕获控制台输出
             python_exe = sys.executable
             if 'pythonw' in python_exe.lower():
