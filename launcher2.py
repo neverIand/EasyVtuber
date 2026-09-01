@@ -1,4 +1,5 @@
 import ctypes
+import importlib.util
 import os
 import subprocess
 import threading
@@ -73,6 +74,45 @@ dirPath = 'data/images'
 characterList = []
 studentModelList = []
 studentModelCharacterMap = {}
+
+
+_trt_cache_module = None
+
+
+def _get_trt_cache_module():
+    """Load cache helpers without importing CUDA or TensorRT."""
+    global _trt_cache_module
+    if _trt_cache_module is not None:
+        return _trt_cache_module
+
+    launcher_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = (
+        os.path.join(launcher_dir, 'ezvtuber-rt', 'ezvtb_rt', 'trt_cache.py'),
+        os.path.join(launcher_dir, 'ezvtuber-rt-main', 'ezvtb_rt', 'trt_cache.py'),
+    )
+    module_path = next((path for path in candidates if os.path.isfile(path)), None)
+    if module_path is None:
+        raise FileNotFoundError('找不到 ezvtb_rt/trt_cache.py')
+
+    spec = importlib.util.spec_from_file_location(
+        'easyvtuber_launcher_trt_cache', module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f'无法加载 TensorRT 缓存模块：{module_path}')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _trt_cache_module = module
+    return module
+
+
+def _format_cache_size(size_bytes):
+    if size_bytes < 1024:
+        return f'{size_bytes} B'
+    if size_bytes < 1024 ** 2:
+        return f'{size_bytes / 1024:.1f} KiB'
+    if size_bytes < 1024 ** 3:
+        return f'{size_bytes / 1024 ** 2:.1f} MiB'
+    return f'{size_bytes / 1024 ** 3:.2f} GiB'
+
 
 def is_nvidia_gpu():
     try:
@@ -387,6 +427,12 @@ class LauncherPanel(wx.Panel):
         self.statusCtrl.SetFont(f.Smaller())
         controlSizer.Add(self.statusCtrl, 1, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 8)
 
+        self.btnClearCache = wx.Button(self, label="清理 TRT 缓存…")
+        self.btnClearCache.SetToolTip(
+            '清理不会自动删除的 TensorRT 磁盘缓存；内存和显存缓存会在程序退出时自动释放。')
+        self.btnClearCache.Bind(wx.EVT_BUTTON, self.OnClearTensorRTCache)
+        controlSizer.Add(self.btnClearCache, 0, wx.CENTER | wx.ALL, 5)
+
         self.btnLaunch = wx.Button(self, label="Save && Launch")
         self.btnLaunch.Bind(wx.EVT_BUTTON, self.OnLaunch)
         controlSizer.Add(self.btnLaunch, 0, wx.CENTER | wx.ALL, 10)
@@ -624,6 +670,100 @@ class LauncherPanel(wx.Panel):
                 '需要NVIDIA显卡支持才能使用TensorRT')
 
         self.frame.Bind(wx.EVT_ACTIVATE, onActivate)
+
+    def OnClearTensorRTCache(self, e):
+        del e
+        global p
+
+        if p is not None and p.poll() is None:
+            wx.MessageBox(
+                '请先用启动器停止 EasyVtuber，再清理 TensorRT 缓存。',
+                '无法清理缓存',
+                wx.OK | wx.ICON_WARNING,
+                self,
+            )
+            return
+
+        try:
+            cache = _get_trt_cache_module()
+            cache_dir = cache.resolve_cache_dir().resolve()
+            lock_files = cache.list_cache_locks(cache_dir)
+            file_count, total_bytes = cache.get_cache_usage(cache_dir)
+        except Exception as error:
+            wx.MessageBox(
+                f'读取 TensorRT 缓存失败：\n{error}',
+                '缓存检查失败',
+                wx.OK | wx.ICON_ERROR,
+                self,
+            )
+            return
+
+        if lock_files:
+            wx.MessageBox(
+                '检测到 TensorRT 引擎正在构建或遗留了构建锁，未删除任何文件。\n\n'
+                f'缓存位置：{cache_dir}\n'
+                f'锁文件：{lock_files[0].name}',
+                '缓存正在使用',
+                wx.OK | wx.ICON_WARNING,
+                self,
+            )
+            return
+
+        if file_count == 0:
+            self.statusCtrl.SetValue('没有可清理的 TRT 磁盘缓存')
+            wx.MessageBox(
+                '没有找到可清理的 TensorRT 磁盘缓存。\n\n'
+                'RAM 和显存缓存会在 EasyVtuber 退出时自动释放，无需手动清理。\n\n'
+                f'检查位置：{cache_dir}',
+                '无需清理',
+                wx.OK | wx.ICON_INFORMATION,
+                self,
+            )
+            return
+
+        answer = wx.MessageBox(
+            f'将删除 {file_count} 个 TensorRT 磁盘缓存文件'
+            f'（约 {_format_cache_size(total_bytes)}）。\n\n'
+            f'缓存位置：{cache_dir}\n\n'
+            '下次启用 TensorRT 时必须重新构建引擎，构建期间可能出现短时很高的 GPU 负载。\n'
+            '除非缓存损坏或需要释放磁盘空间，否则不建议清理。\n\n'
+            '确定继续吗？',
+            '清理 TensorRT 缓存',
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+            self,
+        )
+        if answer != wx.YES:
+            return
+
+        try:
+            deleted_count, deleted_bytes = cache.clear_cache(cache_dir)
+        except cache.CacheInUseError as error:
+            wx.MessageBox(
+                f'缓存已开始被引擎构建使用，未继续清理：\n{error}',
+                '缓存正在使用',
+                wx.OK | wx.ICON_WARNING,
+                self,
+            )
+            return
+        except Exception as error:
+            wx.MessageBox(
+                f'清理 TensorRT 缓存失败：\n{error}',
+                '清理失败',
+                wx.OK | wx.ICON_ERROR,
+                self,
+            )
+            return
+
+        display_size = _format_cache_size(deleted_bytes)
+        self.statusCtrl.SetValue(
+            f'已清理 {deleted_count} 个 TRT 缓存文件（{display_size}）')
+        wx.MessageBox(
+            f'已清理 {deleted_count} 个 TensorRT 缓存文件，共 {display_size}。\n\n'
+            '下次启用 TensorRT 时会重新构建引擎。',
+            '清理完成',
+            wx.OK | wx.ICON_INFORMATION,
+            self,
+        )
 
     def OnLaunch(self, e):
         global p
