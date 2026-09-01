@@ -11,7 +11,8 @@ class FPS:
 
     def view(self):
         if len(self.frametimestamps) > 1:
-            return len(self.frametimestamps) / (self.frametimestamps[-1] - self.frametimestamps[0] + 1e-10)
+            # N timestamps contain N - 1 measured frame intervals.
+            return (len(self.frametimestamps) - 1) / (self.frametimestamps[-1] - self.frametimestamps[0] + 1e-10)
         else:
             return 0.0
 

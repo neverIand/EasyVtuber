@@ -9,6 +9,7 @@ import json
 import sys
 
 from src.utils.student_models import scan_student_models
+from src.utils.gpu_detect import has_nvidia_gpu
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 p = None
@@ -117,12 +118,7 @@ def _format_cache_size(size_bytes):
 
 
 def is_nvidia_gpu():
-    try:
-        # 获取显卡名称列表
-        output = subprocess.check_output("wmic path Win32_VideoController get Name", shell=True).decode('gbk')
-        return "NVIDIA" in output.upper()
-    except Exception:
-        return False
+    return has_nvidia_gpu()
 hasTRTSupport = is_nvidia_gpu()
 
 def refreshList():
