@@ -188,9 +188,11 @@
 
 - [ ] 把 `CoreORT` 的 RIFE/SR 从普通 `.run()` 和 NumPy 往返改为 OrtValue/I/O Binding。
 - [ ] 尝试让 THA → RIFE → SR 中间张量留在 GPU，只把最终图像读回 CPU。
-- [ ] 删除 `tha3_ort.py`、`tha4_ort.py` 中未使用的 `onnx` 导入；按需导入 `pyanime4k`。
+- [x] 删除 `tha3_ort.py`、`tha4_ort.py` 中未使用的 `onnx` 导入；TensorRT/DirectML 均只在实际启用 Anime4K 时导入 `pyanime4k`。
 
-这是非 TensorRT 后端最大的潜在优化，尤其在 DirectML + RIFE/SR 时明显。实现复杂，且依赖显卡驱动/执行提供程序；需做逐像素或允许差异范围的明确验证。当前 TensorRT 配置无直接收益。
+本机 ONNX Runtime 1.23.0 原型已证明 GPU 驻留在接口和精度上可行：RIFE x2 FP32 的 DML OrtValue 输出可直接绑定为 waifu2x x2 FP32 输入，最终 `(2, 1024, 1024, 4)` `uint8` 图像与普通 `.run()` 管线逐字节一致。但五轮稳态均值仅从 1028.745 ms 降到 1026.047 ms，约快 0.3%/2.7 ms；首次运行时间受 DML JIT 顺序影响，不计入结论。鉴于生产实现还必须覆盖动态批次、RAM 缓存全命中/部分命中、device 0 限制和各条回退路径，当前收益不足以承担全面改写风险，因此前两项保留为未来针对更快 DirectML 设备重新评估的待办。
+
+低风险导入清理实测使 `core_ort` 冷导入约从 0.471 秒降到 0.388 秒，且导入后 `onnx`、`pyanime4k` 均不在已加载模块中；运行时 48 项 CPU/mock 回归通过。这部分不改变模型或像素；Anime4K 首次真正启用时才支付其约 0.034 秒模块导入成本。当前 TensorRT + 非 Anime4K 配置也获得这项小幅启动收益。
 
 ### 5.2 Spout 输出路径
 
@@ -268,3 +270,4 @@
 9. [x] VRAM 精确尺寸内存池及 1800 帧受控长测。
 10. [x] 默认关闭 TensorRT 计时 event，并删除每帧空流同步。
 11. [x] THA4 student 配置/打包一致性与 SR RAM 总预算修正。
+12. [x] DirectML 导入清理与 RIFE→SR GPU 驻留可行性原型；生产重写因本机稳态收益仅约 0.3% 暂缓。
