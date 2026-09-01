@@ -686,7 +686,8 @@ class LauncherPanel(wx.Panel):
 
         try:
             cache = _get_trt_cache_module()
-            cache_dir = cache.resolve_cache_dir().resolve()
+            # Ensure older %TEMP% caches are safely migrated before inspection.
+            cache_dir = cache.get_cache_dir().resolve()
             lock_files = cache.list_cache_locks(cache_dir)
             file_count, total_bytes = cache.get_cache_usage(cache_dir)
         except Exception as error:
