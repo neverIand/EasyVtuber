@@ -92,9 +92,15 @@ class ModelClientProcess(Process):
         )
         model.setImage(self.input_image)
         model_infer_average_interval.start()
+        warmup_started_at = time.perf_counter()
         model.inference([np.zeros((1, 45), dtype=np.float32)])  # Warm up
+        gpu_duty_limiter.record_inference(warmup_started_at)
         model_infer_average_interval.stop()
         self.last_model_interval.value = model_infer_average_interval.last()
+        # Keep the warm-up inside the same sustained-duty budget as the main
+        # loop.  This is normally only a few milliseconds at 90%, but avoids
+        # immediately stacking the first live frame onto startup JIT work.
+        gpu_duty_limiter.wait()
 
         last_pose = np.zeros((45,), dtype=np.float32)
 
