@@ -216,7 +216,7 @@ CPU 微基准显示，现有复用目标缓冲的 BGRA→RGBA 转换在 512/1024
 - [x] 修正 `FPS.view` 的显示计算偏差；它不影响真实运行性能。
 - [x] 替换启动器中缓慢且已弃用的 WMIC NVIDIA 检测。
 - [x] 将 PyTorch 降为旧训练/开发工具的可选依赖（需先完成轻量姿态索引）。
-- [ ] 固定关键依赖版本，提高老项目的可复现性。
+- [x] 固定关键依赖版本，提高老项目的可复现性。
 - [ ] 清理不再进入运行路径的旧 THA2/THA3/THA4 训练代码；主要减少包体积，不提升热路径速度。
 - [ ] 只有在以上无损路径耗尽后，才考虑单进程/线程重构以移除共享内存复制。
 
@@ -225,6 +225,8 @@ Windows 运行路径现在优先使用可复用的高精度 waitable timer，并
 单写者共享统计值微基准中，加锁/无锁的一写一读约为 1.021/0.140 微秒；实际每帧只有少量统计访问，总收益不足 0.01 ms，而 `RawValue` 会放弃跨进程同步保证，因此保留现有锁。`FPS.view` 已改为用 N 个时间戳对应的 N−1 个区间计算，只修正状态栏、控制台及 Debug 叠字数值。启动器 NVIDIA 检测已由 WMIC 子进程替换为 Win32 `EnumDisplayDevicesW`，本机能直接识别 Intel 核显与 RTX 4060，启动器导入约 0.08 秒且不再出现 WMIC 拒绝访问。
 
 PyTorch 已从基础 `requirements.txt` 移到 `requirements-dev.txt`，仅供未进入正式入口的旧 PyTorch 模型、训练和 ONNX 导出脚本使用。当前嵌入式环境仍保留已安装的 PyTorch，不做破坏性卸载；未来重新打包时可至少少装约 433 MiB 的 PyTorch 本体。实测单独导入当前 CPU 版 PyTorch 约需 2.29 秒，但启动器、TensorRT/DirectML 运行路径和 iFacialMocap 均不导入它；新增测试会主动阻止任何 `torch` 导入并验证这些路径。
+
+基础运行依赖已固定为当前完整回归通过的精确版本；发布脚本也固定 Python 3.10.19、PyCUDA 2025.1.2、CUDA 12.9.1/NVCC 12.9.86 和 cuDNN 9.17.0.29。原依赖同时要求 `opencv-python`，而 MediaPipe 又会安装拥有同一 `cv2` 文件树的 `opencv-contrib-python`；现在只要求本机已验证的 contrib 4.13.0.90，避免安装顺序静默覆盖二进制。版本锁测试会确认每个直接运行依赖均与已验证环境一致，`pip check` 无冲突。该改动不会更换当前环境里的任何包，只影响未来安装/重新打包。
 
 ## 7. 视觉与动作影响总表
 
@@ -242,11 +244,12 @@ PyTorch 已从基础 `requirements.txt` 移到 `requirements-dev.txt`，仅供�
 | Spout 原生/GPU 输出 | 否，当前 Debug | 理论无；需验证通道顺序和 alpha |
 | Windows 帧等待/FPS/显卡检测 | 所有配置均经过，短补齐等待更明显 | 像素无变化；极短等待可能晚约 0.2 ms，FPS 显示更准确 |
 | PyTorch 可选依赖 | 未来重新安装/打包时明显 | 无；正式运行路径不使用 PyTorch |
+| 依赖版本锁与单一 OpenCV 包 | 未来重新安装/打包时明显 | 无；固定为当前已验证二进制组合 |
 | FP16/INT8/更高简化等级 | 不在本计划内 | 可能改变精度或动作，明确不采用 |
 
 ### 3.5 第一阶段集成验证结果
 
-- 主项目完整 CPU 测试：33 项通过。
+- 主项目完整 CPU 测试：35 项通过。
 - `ezvtuber-rt` CPU/mock 测试：48 项通过（包含磁盘清理、持久化迁移、PID 构建锁、哈希清单、VRAM 内存池、TensorRT 计时 opt-in、student 配置及 RAM 总预算测试）。
 - 实机测试前确认 THA3 separable FP32 的五个内容寻址引擎全部存在，运行日志显示五个引擎和运行时缓存均直接加载，没有构建。
 - 短时 TensorRT 测试：300 帧、100 个唯一姿态循环三次、90% 持续推理占空比目标、raw RAM 缓存、Debug + 扩展移动后处理。
@@ -257,7 +260,7 @@ PyTorch 已从基础 `requirements.txt` 移到 `requirements-dev.txt`，仅供�
 
 ## 8. 每阶段统一验收与安全规则
 
-- [x] 主项目 CPU 单元测试全部通过（当前：33 项）。
+- [x] 主项目 CPU 单元测试全部通过（当前：35 项）。
 - [x] `ezvtuber-rt` 无 GPU mock 单元测试全部通过（当前：48 项）。
 - [x] 使用 5000 组输入验证 IFM 转换及修改前后的姿态简化；数值差异为零。
 - [x] 使用固定输入/姿态检查最终帧；无损路径逐字节一致。
@@ -284,3 +287,4 @@ PyTorch 已从基础 `requirements.txt` 移到 `requirements-dev.txt`，仅供�
 14. [x] 审计跨引擎 CUDA Graph/模型融合；现有 API、动态缓存分支和逐字节一致性约束下暂不实施。
 15. [x] Windows waitable timer、FPS 统计和无 WMIC 显卡检测；无锁共享统计因收益不足而不采用。
 16. [x] 将 PyTorch 移到可选开发依赖，并验证启动器、DirectML 与 iFacialMocap 在禁止导入 torch 时仍可加载。
+17. [x] 固定已验证的 Python/CUDA/PyCUDA/cuDNN 与直接运行依赖版本，并消除双 OpenCV 发行包要求。

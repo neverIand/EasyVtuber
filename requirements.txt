@@ -1,17 +1,20 @@
-numpy
-scipy
-protobuf
-pynput
+numpy==2.2.6
+scipy==1.15.3
+protobuf==3.20.3
+pynput==1.8.1
 mediapipe==0.10.11
-opencv_python
-Pillow
+# MediaPipe requires the contrib build. Do not also install opencv-python:
+# both distributions own the same cv2 files and installation order can decide
+# which binary silently wins.
+opencv-contrib-python==4.13.0.90
+Pillow==12.1.0
 pyanime4k==3.1.0
 pyvirtualcam==0.9.1
-pyopengl
-wxpython
-onnx 
-onnxruntime-directml 
-tqdm
-OneEuroFilter
-sounddevice
-brotli
+PyOpenGL==3.1.10
+wxPython==4.2.4
+onnx==1.17.0
+onnxruntime-directml==1.23.0
+tqdm==4.67.2
+OneEuroFilter==0.2.1
+sounddevice==0.5.5
+brotli==1.2.0

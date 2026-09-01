@@ -35,13 +35,13 @@ SET PATH=%~dp0envs\TensorRT-RTX-1.3.0.35_cu129\bin;%~dp0envs\miniconda3\Scripts;
 call activate
 call conda env list
 call conda update -y --all
-call conda create -n ezvtb_rt_venv_release python=3.10 -y
+call conda create -n ezvtb_rt_venv_release python=3.10.19 -y
 call conda activate ezvtb_rt_venv_release
 call conda env list
 
 call conda install -y conda-pack
-call conda install -y conda-forge::pycuda 
-call conda install -y -c nvidia/label/cuda-12.9.1 cuda-nvcc-dev_win-64 cudnn cuda-runtime
+call conda install -y conda-forge::pycuda=2025.1.2
+call conda install -y -c nvidia/label/cuda-12.9.1 cuda-nvcc-dev_win-64=12.9.86 cudnn=9.17.0.29 cuda-runtime=12.9.1
 
 call conda-pack -n ezvtb_rt_venv_release -o %~dp0envs\python_embedded --format no-archive
 

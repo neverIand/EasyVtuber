@@ -206,6 +206,8 @@ git submodule update --recursive --remote
 pip install -r requirements.txt --no-warn-script-location
 ```
 
+`requirements.txt` 固定为本项目发布环境实际验证过的版本；其中只安装 MediaPipe 所需的 `opencv-contrib-python`，不要再同时安装同样提供 `cv2` 文件的 `opencv-python`。
+
 只有在使用旧版 PyTorch 模型、训练代码或 ONNX 导出脚本时，才安装开发依赖：
 ```
 pip install -r requirements-dev.txt --no-warn-script-location
