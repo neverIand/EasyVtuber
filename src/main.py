@@ -103,9 +103,16 @@ def main():
     elif args.output_spout2:
         from OpenGL.GL import GL_RGBA
         from PySpout import SpoutSender
+        from .utils.spout_frame import (
+            create_spout_staging_buffer,
+            stage_spout_frame,
+        )
 
         spout_sender = SpoutSender("EasyVtuber", cam_width_scale * args.model_output_size,
                                    args.model_output_size, GL_RGBA)
+        spout_frame_buffer = create_spout_staging_buffer(
+            np_ret_shms[0].shape
+        )
     else:
         print("Using OpenCV windows for output display.")
 
@@ -143,7 +150,13 @@ def main():
             if args.output_virtual_cam:
                 virtual_cam.send(np_ret_shms[i])
             elif args.output_spout2:
-                spout_sender.send_image(np_ret_shms[i], False)
+                spout_sender.send_image(
+                    stage_spout_frame(
+                        np_ret_shms[i],
+                        spout_frame_buffer,
+                    ),
+                    False,
+                )
             else:
                 cv2.imshow("EasyVtuber Debug Frame", np_ret_shms[i])
                 cv2.waitKey(1)
