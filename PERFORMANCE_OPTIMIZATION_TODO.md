@@ -204,10 +204,10 @@ CPU 微基准显示，现有复用目标缓冲的 BGRA→RGBA 转换在 512/1024
 
 ### 5.3 跨引擎 CUDA Graph / 模型融合
 
-- [ ] 研究跨 THA/RIFE/SR 的 CUDA Graph 或融合 ONNX。
-- [ ] 权衡启动/显存、缓存跳过能力和浮点末位变化。
+- [x] 研究跨 THA/RIFE/SR 的 CUDA Graph 或融合 ONNX。
+- [x] 权衡启动/显存、缓存跳过能力和浮点末位变化。
 
-当前每个 TensorRT 引擎已各自使用 whole-graph capture，但没有跨引擎捕获。该方向可能减少 kernel launch，但会削弱按姿态缓存跳过部分管线的能力，并可能改变低位浮点结果，因此仅作为最后研究项。
+当前每个 TensorRT 引擎已各自使用 whole-graph capture；本机 TensorRT RTX 1.3 Python API 只暴露单个 execution context 的 `WHOLE_GRAPH_CAPTURE`，没有跨 context 的公开捕获入口。融合 ONNX 或自行维护多套跨引擎图虽然可能减少完整未命中时的 kernel launch，但 THA3/THA4 当前会根据 morpher/combiner 缓存命中动态跳过不同子管线，RIFE/SR 也有独立缓存分支；固定融合图会丢失这些跳过收益，并增加启动时间、显存和图变体维护成本。融合还可能改变算子划分与浮点计算顺序，无法满足“输出精度不变”的严格条件。因此该项审计完成，当前不实施；若未来用固定姿态序列、关闭中间缓存做专用基准，再单独重新评估。
 
 ## 6. 低优先级整理
 
@@ -273,3 +273,4 @@ CPU 微基准显示，现有复用目标缓冲的 BGRA→RGBA 转换在 512/1024
 11. [x] THA4 student 配置/打包一致性与 SR RAM 总预算修正。
 12. [x] DirectML 导入清理与 RIFE→SR GPU 驻留可行性原型；生产重写因本机稳态收益仅约 0.3% 暂缓。
 13. [x] 审计 Spout 像素格式与绑定复制；确认必须保留 RGBA 转换，后续收益点是重编译 `uint8` 绑定或纹理互操作。
+14. [x] 审计跨引擎 CUDA Graph/模型融合；现有 API、动态缓存分支和逐字节一致性约束下暂不实施。
