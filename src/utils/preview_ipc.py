@@ -12,12 +12,45 @@ PREVIEW_WIDTH = 512
 PREVIEW_HEIGHT = 512
 PREVIEW_CHANNELS = 4
 PREVIEW_FPS = 30
+# wx.Timer uses the coarse WM_TIMER clock on Windows. Polling at the same
+# 33 ms cadence can be rounded up to roughly 46.9 ms (about 21 FPS). A cheap
+# header poll at 15 ms keeps the consumer ahead of the capped 30 FPS writer;
+# bitmap creation and repaint still happen only when a new frame is present.
+PREVIEW_UI_POLL_MS = 15
 
 _MAGIC = b'EVP1'
 _HEADER = struct.Struct('<4sIIII')
 _HEADER_SIZE = 64
 _SEQUENCE_OFFSET = 12
 _ACTIVE_INDEX_OFFSET = 16
+
+
+class PreviewPublishPacer:
+    """Cap preview publication without losing phase against the source."""
+
+    def __init__(self, fps=PREVIEW_FPS):
+        if fps <= 0:
+            raise ValueError('Preview FPS must be positive')
+        self.interval = 1.0 / fps
+        self._next_time = None
+
+    def is_due(self, now):
+        now = float(now)
+        if self._next_time is None:
+            self._next_time = now + self.interval
+            return True
+        if now + 1e-9 < self._next_time:
+            return False
+
+        # Advance the existing deadline to retain phase. Reset only after a
+        # whole missed period so a long stall cannot trigger a catch-up burst.
+        next_time = self._next_time + self.interval
+        self._next_time = (
+            now + self.interval
+            if next_time <= now + 1e-9
+            else next_time
+        )
+        return True
 
 
 class PreviewSharedBuffer:

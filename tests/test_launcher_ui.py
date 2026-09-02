@@ -12,7 +12,7 @@ class LauncherUiTests(unittest.TestCase):
 import wx
 import numpy as np
 import launcher2
-from src.utils.preview_ipc import PreviewSharedBuffer
+from src.utils.preview_ipc import PREVIEW_UI_POLL_MS, PreviewSharedBuffer
 
 app = wx.App(False)
 frame = launcher2.MainFrame(None)
@@ -63,6 +63,7 @@ assert not panel.optionDict['ram_cache_mode'].IsShown()
 
 preview_name = panel.StartPreview()
 assert preview_name
+assert panel.previewTimer.GetInterval() == PREVIEW_UI_POLL_MS
 writer = PreviewSharedBuffer.attach(preview_name)
 try:
     preview_frame = np.full((512, 512, 4), 127, dtype=np.uint8)

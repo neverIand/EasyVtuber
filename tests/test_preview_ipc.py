@@ -4,7 +4,11 @@ import unittest
 
 import numpy as np
 
-from src.utils.preview_ipc import PreviewFrameFormatter, PreviewSharedBuffer
+from src.utils.preview_ipc import (
+    PreviewFrameFormatter,
+    PreviewPublishPacer,
+    PreviewSharedBuffer,
+)
 
 
 class PreviewSharedBufferTests(unittest.TestCase):
@@ -88,6 +92,36 @@ class PreviewFrameFormatterTests(unittest.TestCase):
         np.testing.assert_array_equal(actual[3], 0)
         np.testing.assert_array_equal(actual[1:3, :, :3], 255)
         np.testing.assert_array_equal(actual[1:3, :, 3], 91)
+
+
+class PreviewPublishPacerTests(unittest.TestCase):
+    def test_slightly_faster_source_is_evenly_reduced_to_thirty_fps(self):
+        pacer = PreviewPublishPacer(30)
+
+        published = sum(
+            pacer.is_due(index / 34.0)
+            for index in range(340)
+        )
+
+        self.assertGreaterEqual(published, 295)
+        self.assertLessEqual(published, 301)
+
+    def test_source_below_cap_publishes_every_frame(self):
+        pacer = PreviewPublishPacer(30)
+
+        published = sum(
+            pacer.is_due(index / 17.0)
+            for index in range(170)
+        )
+
+        self.assertEqual(published, 170)
+
+    def test_long_stall_does_not_create_a_catch_up_burst(self):
+        pacer = PreviewPublishPacer(30)
+
+        self.assertTrue(pacer.is_due(0.0))
+        self.assertTrue(pacer.is_due(10.0))
+        self.assertFalse(pacer.is_due(10.001))
 
 
 if __name__ == '__main__':

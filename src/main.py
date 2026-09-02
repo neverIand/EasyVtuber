@@ -12,6 +12,7 @@ from .utils.fps import FPS
 from .utils.preview_ipc import (
     PREVIEW_FPS,
     PreviewFrameFormatter,
+    PreviewPublishPacer,
     PreviewSharedBuffer,
 )
 from .utils.student_models import student_character_path
@@ -160,7 +161,14 @@ def main():
     n_frames = args.interpolation_scale
     min_period = n_frames * interval if interval > 0 else n_frames / 60.0  # 60fps 下本批最少占用时间
     default_period = 1.0 / 15.0  # 约 15fps 推理时的周期，首包无历史时使用
-    next_preview_time = 0.0
+    # The normal 10-30 FPS output modes are already paced, so forward every
+    # output frame. Apply a separate preview cap only to 60 FPS or unlimited
+    # output; double-gating two equal 30 FPS clocks causes avoidable drops.
+    preview_pacer = (
+        PreviewPublishPacer(PREVIEW_FPS)
+        if args.frame_rate_limit <= 0 or args.frame_rate_limit > PREVIEW_FPS
+        else None
+    )
 
     print("Interval set to {:.3f} seconds".format(interval))
     while True:
@@ -201,7 +209,10 @@ def main():
             now_send = time.perf_counter()
             preview_due = (
                 preview_buffer is not None
-                and now_send >= next_preview_time
+                and (
+                    preview_pacer is None
+                    or preview_pacer.is_due(now_send)
+                )
             )
             if preview_due:
                 # Release the inference/output slot after only a raw copy. The
@@ -228,7 +239,6 @@ def main():
                     preview_buffer = None
                     preview_formatter = None
                     preview_source_frame = None
-                next_preview_time = now_send + 1.0 / PREVIEW_FPS
         output_pipeline_fps_val = pipeline_fps() * args.interpolation_scale
         infer_process.output_pipeline_fps.value = output_pipeline_fps_val
         now = time.perf_counter()

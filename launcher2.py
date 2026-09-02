@@ -25,6 +25,7 @@ from src.utils.launcher_config import (
 )
 from src.utils.preview_ipc import (
     PREVIEW_FPS,
+    PREVIEW_UI_POLL_MS,
     PreviewSharedBuffer,
 )
 
@@ -963,7 +964,7 @@ class LauncherPanel(wx.Panel):
         self._set_preview_status(
             f'正在启动 · 预览最高 {PREVIEW_FPS} FPS，不限制实际输出。'
         )
-        self.previewTimer.Start(max(1, round(1000 / PREVIEW_FPS)))
+        self.previewTimer.Start(PREVIEW_UI_POLL_MS)
         return self.previewBuffer.name
 
     def StopPreview(self, message='未运行', clear=True):
