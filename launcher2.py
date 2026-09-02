@@ -10,6 +10,7 @@ import sys
 
 from src.utils.student_models import scan_student_models
 from src.utils.gpu_detect import has_nvidia_gpu
+from src.utils.dml_devices import launcher_directml_choices
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 p = None
@@ -54,6 +55,7 @@ default_arg = {
     'gpu_duty_limit': '90',
     'sr': "Off",
     'use_tensorrt': False,
+    'dml_device': 'auto',
     'preset': 'Low',
     'mouse_audio_input': False,
     'audio_sensitivity': '0.02',
@@ -146,6 +148,7 @@ def scanStudentModels():
 
 refreshList()
 scanStudentModels()
+dmlDeviceChoices, dmlDeviceMapping = launcher_directml_choices()
 
 def min_cutoff_mapper(value, revert=False):
     """
@@ -470,6 +473,13 @@ class LauncherPanel(wx.Panel):
         addOption('use_tensorrt', title='TensorRT Backend',
                   desc='关闭时仍使用DirectML独显推理\n开启后改用TensorRT（仅NVIDIA）',
                   type=1)
+        addOption(
+            'dml_device',
+            title='DirectML GPU',
+            desc='仅 DirectML 生效；Auto 优先独显\n可选 GPU 0 复现旧版适配器与硬件浮点结果',
+            choices=dmlDeviceChoices,
+            mapping=dmlDeviceMapping,
+        )
 
         addOption('frame_rate_limit', title='FPS Limit', desc='选择帧率限制目标',
                   choices=['10', '15', '20', '24', '30', '60'])
@@ -650,6 +660,14 @@ class LauncherPanel(wx.Panel):
             self.optionDict['use_tensorrt'].control.Enable(False)
             self.optionDict['use_tensorrt'].control.SetToolTip(
                 '需要NVIDIA显卡支持才能使用TensorRT')
+
+        def backendChoice(e=None):
+            using_tensorrt = self.optionDict['use_tensorrt'].GetValue()
+            self.optionDict['dml_device'].control.Enable(not using_tensorrt)
+
+        self.optionDict['use_tensorrt'].Bind(
+            wx.EVT_CHECKBOX, backendChoice)
+        backendChoice()
 
         self.frame.Bind(wx.EVT_ACTIVATE, onActivate)
 
@@ -959,6 +977,10 @@ class LauncherPanel(wx.Panel):
             if args['gpu_duty_limit'] is not None:
                 run_args.append('--gpu_duty_limit')
                 run_args.append(args['gpu_duty_limit'])
+
+            if not args['use_tensorrt'] and args['dml_device'] != 'auto':
+                run_args.append('--dml_device_id')
+                run_args.append(args['dml_device'])
 
             if args['sr'] is not None and args['sr'] != 'Off':
                 run_args.append('--use_sr')

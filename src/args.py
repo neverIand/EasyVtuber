@@ -20,6 +20,13 @@ def percentage(value):
     return result
 
 
+def nonnegative_integer(value):
+    result = int(value)
+    if result < 0:
+        raise argparse.ArgumentTypeError("value must be a non-negative integer")
+    return result
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--character', type=str, default='lambda_00')
 
@@ -49,6 +56,12 @@ parser.add_argument('--filter_beta', type=float, default=0.3)
 parser.add_argument('--simplify', type=int, default=1)
 
 parser.add_argument('--use_tensorrt', action='store_true')
+parser.add_argument(
+    '--dml_device_id',
+    type=nonnegative_integer,
+    default=None,
+    help='DirectML DXGI adapter index; omitted selects the preferred discrete GPU',
+)
 parser.add_argument('--model_version', type=str, default='v3')
 parser.add_argument('--model_name', type=str, default='')
 parser.add_argument('--model_seperable', action='store_true')

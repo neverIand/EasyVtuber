@@ -140,6 +140,16 @@ https://github.com/emilianavt/OpenSeeFace/releases
 `GPU Duty Limit`限制同步模型推理调用的持续占空比，默认值为`90%`。限速器会把模型计算之外已经发生的输出等待计入空闲时间，因此与`FPS Limit`配合时不会重复等待。`100% (Off)`可关闭此保护。
 此设置控制的是本程序推理任务的持续占空比，不是显卡驱动级功耗限制；一次推理期间仍可能出现瞬时`100%`利用率，其他程序产生的GPU负载也不在本设置的控制范围内。
 
+#### DirectML 显卡选择
+
+双显卡笔记本上，DirectML 的 `GPU 0` 经常是负责主显示的核显，而不是性能更高的独显。启动器的 `DirectML GPU` 默认使用 `Auto`，会根据 ONNX Runtime 报告的真实 DXGI 编号优先选择高性能独显；本机对应 `GPU 1: NVIDIA GeForce RTX 4060 Laptop GPU`。如需复现旧版默认适配器，可明确选择 `GPU 0`。脱离启动器运行时可使用 `--dml_device_id N`。
+
+显卡选择不改变 Full/Half 模型精度，但不同厂商或不同 GPU 的浮点实现可能使少量最终 8-bit 像素发生硬件相关的舍入差异；需要严格复现某次 DirectML 输出时，应固定同一适配器。`GPU Duty Limit`同样作用于 DirectML。
+
+#### TensorRT 磁盘缓存
+
+内容寻址的 `.trt` 引擎缓存仍会持久保存并复用，避免每次启动重建模型。当前 TensorRT-RTX 1.3 在本机读写附加的 runtime JIT cache 时出现过原生调用无限阻塞，因此这层小缓存默认禁用；它不影响 `.trt` 引擎，也不影响稳定推理速度或像素，只会使每次 TensorRT 启动重新创建 execution context（当前 THA3 FP32 约十几秒）。仅供排查时可设置 `EZVTB_TRT_RUNTIME_CACHE=1` 重新启用，不建议日常开启。
+
 #### 超分
 ![image](https://github.com/user-attachments/assets/afa78440-5122-4b57-b586-4487e125eb2f)
 
@@ -253,7 +263,7 @@ A卡I卡使用 DirectML，这个框架与显卡厂商的显卡驱动及 Direct12
 
 > Q6: 本机有两张显卡，如何使用第二张副卡使用这个项目？
 
-在运行前配置环境变量`EZVTB_DEVICE_ID`为你想要运行的GPU ID,此变量缺省为`0`
+DirectML 请在启动器的 `DirectML GPU` 中选择；`Auto` 会优先独显。命令行启动可传 `--dml_device_id N`。TensorRT 的 CUDA 编号与 DirectML/DXGI 编号不是同一套编号，不要因为 DirectML 显示 RTX 为 GPU 1 就把 TensorRT 的 CUDA device 改成 1；本机唯一一张 NVIDIA 显卡的 CUDA 编号仍是 0。
 
 ## References
 ```

@@ -61,6 +61,8 @@ import launcher2
 
 assert isinstance(launcher2.hasTRTSupport, bool)
 assert 'torch' not in sys.modules
+assert 'onnxruntime' not in sys.modules
+assert launcher2.dmlDeviceMapping[0] == 'auto'
 ''')
 
     def test_runtime_and_ifacialmocap_import_without_torch(self):

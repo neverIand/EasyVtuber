@@ -70,6 +70,15 @@ class ModelClientProcess(Process):
         # followed by a proportional cooldown as well.
         if args.use_tensorrt:
             os.environ['EZVTB_GPU_DUTY_LIMIT'] = str(args.gpu_duty_limit)
+        else:
+            # DirectML device 0 is often the integrated/primary-display GPU on
+            # laptops. Resolve Auto against ONNX Runtime's real DXGI indices in
+            # this inference child, keeping ORT out of the wx launcher process.
+            from .utils.dml_devices import select_directml_adapter
+
+            dml_adapter = select_directml_adapter(args.dml_device_id)
+            os.environ['EZVTB_DEVICE_ID'] = str(dml_adapter.device_id)
+            print(f'DirectML adapter: {dml_adapter.display_label}')
 
         # Use unified ezvtb_rt interface for both THA3 and THA4
         model = get_core(use_tensorrt=args.use_tensorrt,
