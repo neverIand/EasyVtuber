@@ -1,0 +1,15 @@
+BENCH worker start label=current backend=directml
+[09/02/2026-07:59:04] [ORT] Loading ONNX model from path D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\decomposer.onnx...
+[09/02/2026-07:59:05] [ORT] Completed loading session: decomposer.onnx
+[09/02/2026-07:59:05] [ORT] Loading ONNX model from path D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\combiner.onnx...
+[09/02/2026-07:59:06] [ORT] Completed loading session: combiner.onnx
+[09/02/2026-07:59:06] [ORT] Loading ONNX model from path D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\merge_no_eyebrow.onnx...
+[09/02/2026-07:59:07] [ORT] Completed loading session: merge_no_eyebrow.onnx
+BENCH entering paced stress phase
+BENCH paced_stress progress 0/3600
+BENCH paced_stress progress 300/3600
+BENCH paced_stress progress 600/3600
+BENCH paced_stress progress 900/3600
+BENCH paced_stress progress 1200/3600
+BENCH paced_stress progress 1500/3600
+BENCH worker failed: GPU temperature reached 80 C

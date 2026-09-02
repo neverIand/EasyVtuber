@@ -1,0 +1,251 @@
+{
+  "backend": "tensorrt",
+  "cache_before_stress": {
+    "ram": {
+      "hits": 0,
+      "miss": 1
+    },
+    "sr_ram": null,
+    "vram": {
+      "hits": 0,
+      "miss": 1
+    }
+  },
+  "core_initialization_ms": 13454.74140000033,
+  "directml_devices_at_core_creation": null,
+  "engine_sources": {
+    "combiner": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\combiner-583a7e88f4190d5085ca.trt",
+    "decomposer": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\decomposer-4cb2bf16de4523a8e571.trt",
+    "editor": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\editor-06861c173caa304ae537.trt",
+    "morpher": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\morpher-c6b9dc8c75a0ec14d44d.trt",
+    "rotator": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\rotator-dc292decd20f459cd0f6.trt"
+  },
+  "environment": {
+    "numpy": "2.2.6",
+    "onnxruntime_directml": "1.23.0",
+    "opencv_contrib_python": "4.13.0.90",
+    "platform": "Windows-10-10.0.22621-SP0",
+    "pycuda": "2025.1.2",
+    "python": "3.10.19 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 16:41:31) [MSC v.1929 64 bit (AMD64)]",
+    "tensorrt_rtx": "1.3.0.35"
+  },
+  "finished_at_local": "2026-09-02T07:56:05+0100",
+  "gpu": {
+    "available": true,
+    "error": null,
+    "gpu_average_percent": 37.634408602150536,
+    "gpu_peak_percent": 94.0,
+    "memory_average_percent": 30.3584229390681,
+    "power_peak_w": 93.919,
+    "sample_count": 279,
+    "stop_reason": null,
+    "temperature_peak_c": 78.0,
+    "vram_peak_bytes": 3456073728
+  },
+  "image_path": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\data\\images\\lambda_00.png",
+  "image_preprocess_ms": 24.0364999999656,
+  "label": "current",
+  "memory_final": {
+    "pagefile_bytes": 3807842304,
+    "peak_pagefile_bytes": 8183205888,
+    "peak_working_set_bytes": 4288307200,
+    "working_set_bytes": 2131783680
+  },
+  "model_root": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-runtime-v0.8.0\\EasyVtuber\\data\\models",
+  "model_sha256": {
+    "combiner.onnx": "edc684c1635b9e7200e44cb3d884831992df2186e2354b5de2b4a20706a316bc",
+    "decomposer.onnx": "b77a0e9dc419f591eeeb0c58204a75ce85bb9cfb742130d2863c014ba66844c8",
+    "editor.onnx": "e0860662bd565a6b3a86915c080d9d1e0222699c6bacde866ab8c4c2d759c5b8",
+    "morpher.onnx": "2398da1606b3d39ef9ae6f8296ef2b53d2aa49ebff1dd0ab9b8a87db6a8aa26e",
+    "rotator.onnx": "8d7152b7950c3b6b6866695d7af416cda416232c9e5ee9d423449d33b198eb3e"
+  },
+  "official_dml_backend_isolation": false,
+  "official_startup_cooldown_seconds": 0.0,
+  "phases": {
+    "no_cache_diagnostic": {
+      "cache_after": {
+        "ram": null,
+        "sr_ram": null,
+        "vram": null
+      },
+      "checkpoint_step": 10,
+      "cpu_seconds": 5.546875,
+      "deadline_misses": 0,
+      "deadline_ms": null,
+      "effective_fps": 48.555207432700676,
+      "final_bgr_checkpoint_sha256": "a0c210496db2dd080742e7d4a42abdf6a7a3877aad926a07fff6126297b8ef3d",
+      "frames": 300,
+      "inference": {
+        "count": 300,
+        "max_ms": 19.678399999975227,
+        "mean_ms": 14.479408666666131,
+        "p50_ms": 14.44790000005014,
+        "p95_ms": 14.590554999927008,
+        "p99_ms": 14.814855000113312
+      },
+      "memory_after": {
+        "pagefile_bytes": 3807842304,
+        "peak_pagefile_bytes": 8183205888,
+        "peak_working_set_bytes": 4288307200,
+        "working_set_bytes": 2131607552
+      },
+      "name": "no_cache_diagnostic",
+      "paced_fps": null,
+      "postprocess": {
+        "count": 300,
+        "max_ms": 0.9713999997984502,
+        "mean_ms": 0.49901999998534546,
+        "p50_ms": 0.45914999986962357,
+        "p95_ms": 0.6656600000496838,
+        "p99_ms": 0.7728040001848054
+      },
+      "processing_total": {
+        "count": 300,
+        "max_ms": 20.491199999923992,
+        "mean_ms": 14.978428666651476,
+        "p50_ms": 14.959799999815004,
+        "p95_ms": 15.178054999637425,
+        "p99_ms": 15.481427999607149
+      },
+      "raw_checkpoint_sha256": "0cef42bb970f7f6fd8bbdb18cfae6c9b56493412f12c6050a9981aa664bac6bf",
+      "wall_seconds": 6.178534000000127
+    },
+    "paced_stress": {
+      "cache_after": {
+        "ram": {
+          "hits": 190,
+          "miss": 3411
+        },
+        "sr_ram": null,
+        "vram": {
+          "hits": 896,
+          "miss": 2515
+        }
+      },
+      "checkpoint_step": 120,
+      "cpu_seconds": 48.71875,
+      "deadline_misses": 11,
+      "deadline_ms": 33.333333333333336,
+      "effective_fps": 29.99936008864987,
+      "final_bgr_checkpoint_sha256": "b88298beb80c172d05e19101c9de73a44bdb08aa9ff4781fb6a5613197e2225e",
+      "frames": 3600,
+      "inference": {
+        "count": 3600,
+        "max_ms": 129.18020000006436,
+        "mean_ms": 14.19162636110602,
+        "p50_ms": 14.98594999998204,
+        "p95_ms": 15.956300000038935,
+        "p99_ms": 17.053333000180817
+      },
+      "memory_after": {
+        "pagefile_bytes": 8182087680,
+        "peak_pagefile_bytes": 8183205888,
+        "peak_working_set_bytes": 4288307200,
+        "working_set_bytes": 4287422464
+      },
+      "name": "paced_stress",
+      "paced_fps": 30.0,
+      "postprocess": {
+        "count": 3600,
+        "max_ms": 2.9973999999128864,
+        "mean_ms": 0.683470416670515,
+        "p50_ms": 0.5960000000868604,
+        "p95_ms": 1.3248850000081798,
+        "p99_ms": 2.0339330002389024
+      },
+      "processing_total": {
+        "count": 3600,
+        "max_ms": 130.03310000021884,
+        "mean_ms": 14.875096777776536,
+        "p50_ms": 15.555599999970582,
+        "p95_ms": 16.816850000009254,
+        "p99_ms": 17.855930000232544
+      },
+      "raw_checkpoint_sha256": "c73662dbe31e887d0607383bf0e4f7a82340763245b508add0a9d53b421b06c0",
+      "wall_seconds": 120.00255969999989
+    },
+    "warm_cache_replay": {
+      "cache_after": {
+        "ram": {
+          "hits": 1090,
+          "miss": 3411
+        },
+        "sr_ram": null,
+        "vram": {
+          "hits": 896,
+          "miss": 2515
+        }
+      },
+      "checkpoint_step": 30,
+      "cpu_seconds": 2.65625,
+      "deadline_misses": 0,
+      "deadline_ms": null,
+      "effective_fps": 1967.9590034771145,
+      "final_bgr_checkpoint_sha256": "be8af0843334112f23450057147f2384f07ffce9271c4dbe378bf64b5728f20f",
+      "frames": 900,
+      "inference": {
+        "count": 900,
+        "max_ms": 0.07020000020929729,
+        "mean_ms": 0.015618111112619064,
+        "p50_ms": 0.013800000033370452,
+        "p95_ms": 0.027424999916547652,
+        "p99_ms": 0.04461499991066374
+      },
+      "memory_after": {
+        "pagefile_bytes": 8182157312,
+        "peak_pagefile_bytes": 8183205888,
+        "peak_working_set_bytes": 4288307200,
+        "working_set_bytes": 4287471616
+      },
+      "name": "warm_cache_replay",
+      "paced_fps": null,
+      "postprocess": {
+        "count": 900,
+        "max_ms": 1.2656000003516965,
+        "mean_ms": 0.4507679999980812,
+        "p50_ms": 0.4410999999890919,
+        "p95_ms": 0.5357499999945503,
+        "p99_ms": 0.6568269997296736
+      },
+      "processing_total": {
+        "count": 900,
+        "max_ms": 1.3267000003907015,
+        "mean_ms": 0.4663861111107003,
+        "p50_ms": 0.4554000001917302,
+        "p95_ms": 0.5581150000352864,
+        "p99_ms": 0.6898249998403115
+      },
+      "raw_checkpoint_sha256": "ed7d45175b8eb57b16da4f8199c1587ccc5389207f3831531adfea8540eeeed3",
+      "wall_seconds": 0.45732660000021497
+    }
+  },
+  "pose_normalized_zero_sha256": "83d0e54920717e01832557861e3b4f0ea5ed06d24a9eb8324b2cd1c7dd6ef8ac",
+  "pose_path": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\ezvtuber-rt\\test\\data\\pose_20fps.json",
+  "pose_sha256": "c5df0062a1ceb77eda0fb77d690493ab389c4a97f93e3444609d053e88006b15",
+  "pose_simplify_5000_ms": 31.79390000013882,
+  "pose_simplify_first_call_ms": 0.10469999961060239,
+  "pose_simplify_import_ms": 5.040100000314851,
+  "pose_unique_count": 4810,
+  "preprocessed_image_sha256": "b315c68dd569e459d76b400db8f2d471d5910ca3b8d3e703785cf05bd77c6cb9",
+  "runtime_import_ms": 1.1800000002040179,
+  "set_image_ms": 191.88720000011017,
+  "settings": {
+    "debug_output": true,
+    "dml_device_id": null,
+    "extend_movement": true,
+    "eyebrow": false,
+    "fps": 30.0,
+    "gpu_duty_percent": 90.0,
+    "model": "THA3 separable FP32",
+    "ram_cache_gib": 2.0,
+    "ram_cache_mode": "raw",
+    "rife": false,
+    "simplify": 2,
+    "super_resolution": false,
+    "vram_cache_gib": 2.0
+  },
+  "source_root": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated",
+  "status": "ok",
+  "variant": "standard",
+  "warmup_ms": 320.71440000026996
+}

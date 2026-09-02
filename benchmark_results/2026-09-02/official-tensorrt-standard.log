@@ -1,0 +1,83 @@
+BENCH worker start label=official backend=tensorrt
+D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmarks\performance_compare.py:787: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for pixel_index, pixel in enumerate(image.getdata()):
+[09/02/2026-07:56:24] [TRT] [I] Creating Engines
+[09/02/2026-07:56:24] [TRT] [I] Building engine from ONNX: D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\decomposer.onnx
+BENCH injecting validated engine bytes for decomposer
+[09/02/2026-07:56:24] [TRT] [I] Saving engine to file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\decomposer.trt
+[09/02/2026-07:56:24] [TRT] [I] Completed saving engine
+[09/02/2026-07:56:24] [TRT] [W] Loading engine from file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\decomposer.trt
+[09/02/2026-07:56:24] [TRT] [I] Loaded engine size: 132 MiB
+[09/02/2026-07:56:24] [TRT] [I] Completed loading engine
+[09/02/2026-07:56:24] [TRT] [I] Creating inference context
+[09/02/2026-07:56:28] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +9, now: CPU 0, GPU 138 (MiB)
+[09/02/2026-07:56:28] [TRT] [I] Input nodes: ['input_image']
+[09/02/2026-07:56:28] [TRT] [I] Output nodes: ['background_layer', 'eyebrow_layer', 'image_prepared']
+[09/02/2026-07:56:28] [TRT] [I] Building engine from ONNX: D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\combiner.onnx
+BENCH injecting validated engine bytes for combiner
+[09/02/2026-07:56:28] [TRT] [I] Saving engine to file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\combiner.trt
+[09/02/2026-07:56:28] [TRT] [I] Completed saving engine
+[09/02/2026-07:56:28] [TRT] [W] Loading engine from file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\combiner.trt
+[09/02/2026-07:56:28] [TRT] [I] Loaded engine size: 19 MiB
+[09/02/2026-07:56:28] [TRT] [I] Completed loading engine
+[09/02/2026-07:56:28] [TRT] [I] Creating inference context
+[09/02/2026-07:56:31] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +22, now: CPU 0, GPU 174 (MiB)
+[09/02/2026-07:56:31] [TRT] [I] Input nodes: ['image_prepared', 'eyebrow_background_layer', 'eyebrow_layer', 'eyebrow_pose']
+[09/02/2026-07:56:31] [TRT] [I] Output nodes: ['eyebrow_image', '/face_morpher/body/downsample_blocks.3/downsample_blocks.3.3/Relu_output_0']
+[09/02/2026-07:56:31] [TRT] [I] Building engine from ONNX: D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\morpher.onnx
+BENCH injecting validated engine bytes for morpher
+[09/02/2026-07:56:31] [TRT] [I] Saving engine to file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\morpher.trt
+[09/02/2026-07:56:31] [TRT] [I] Completed saving engine
+[09/02/2026-07:56:31] [TRT] [W] Loading engine from file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\morpher.trt
+[09/02/2026-07:56:31] [TRT] [I] Loaded engine size: 17 MiB
+[09/02/2026-07:56:31] [TRT] [I] Completed loading engine
+[09/02/2026-07:56:31] [TRT] [I] Creating inference context
+[09/02/2026-07:56:32] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +33, now: CPU 0, GPU 221 (MiB)
+[09/02/2026-07:56:32] [TRT] [I] Input nodes: ['image_prepared', 'im_morpher_crop', 'face_pose', '/face_morpher/body/downsample_blocks.3/downsample_blocks.3.3/Relu_output_0']
+[09/02/2026-07:56:32] [TRT] [I] Output nodes: ['face_morphed_full', 'face_morphed_half']
+[09/02/2026-07:56:32] [TRT] [I] Building engine from ONNX: D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\rotator.onnx
+BENCH injecting validated engine bytes for rotator
+[09/02/2026-07:56:32] [TRT] [I] Saving engine to file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\rotator.trt
+[09/02/2026-07:56:32] [TRT] [I] Completed saving engine
+[09/02/2026-07:56:32] [TRT] [W] Loading engine from file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\rotator.trt
+[09/02/2026-07:56:32] [TRT] [I] Loaded engine size: 18 MiB
+[09/02/2026-07:56:32] [TRT] [I] Completed loading engine
+[09/02/2026-07:56:32] [TRT] [I] Creating inference context
+[09/02/2026-07:56:35] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +75, now: CPU 0, GPU 310 (MiB)
+[09/02/2026-07:56:35] [TRT] [I] Input nodes: ['face_morphed_half', 'rotation_pose']
+[09/02/2026-07:56:35] [TRT] [I] Output nodes: ['full_warped_image', 'full_grid_change']
+[09/02/2026-07:56:35] [TRT] [I] Building engine from ONNX: D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-runtime-v0.8.0\EasyVtuber\data\models\tha3\seperable\fp32\editor.onnx
+BENCH injecting validated engine bytes for editor
+[09/02/2026-07:56:35] [TRT] [I] Saving engine to file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\editor.trt
+[09/02/2026-07:56:35] [TRT] [I] Completed saving engine
+[09/02/2026-07:56:35] [TRT] [W] Loading engine from file D:\_Projects\.Codex\projectless\2026-08-30\new-chat\EasyVtuber-updated\benchmark_results\2026-09-02\_temporary\official-tensorrt-standard\ezvtuber_rt_engines\editor.trt
+[09/02/2026-07:56:35] [TRT] [I] Loaded engine size: 21 MiB
+[09/02/2026-07:56:35] [TRT] [I] Completed loading engine
+[09/02/2026-07:56:35] [TRT] [I] Creating inference context
+[09/02/2026-07:56:35] [TRT] [I] [MS] Running engine with multi stream info
+[09/02/2026-07:56:35] [TRT] [I] [MS] Number of aux streams is 2
+[09/02/2026-07:56:35] [TRT] [I] [MS] Number of total worker streams is 3
+[09/02/2026-07:56:35] [TRT] [I] [MS] The main stream provided by execute/enqueue calls is the first worker stream
+[09/02/2026-07:56:37] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +262, now: CPU 0, GPU 590 (MiB)
+[09/02/2026-07:56:37] [TRT] [I] Input nodes: ['morphed_image', 'rotated_warped_image', 'rotated_grid_change', 'rotation_pose']
+[09/02/2026-07:56:37] [TRT] [I] Output nodes: ['result', 'cv_result']
+BENCH entering paced stress phase
+BENCH paced_stress progress 0/3600
+BENCH paced_stress progress 300/3600
+BENCH paced_stress progress 600/3600
+BENCH paced_stress progress 900/3600
+BENCH paced_stress progress 1200/3600
+BENCH paced_stress progress 1500/3600
+BENCH paced_stress progress 1800/3600
+BENCH paced_stress progress 2100/3600
+BENCH paced_stress progress 2400/3600
+BENCH paced_stress progress 2700/3600
+BENCH paced_stress progress 3000/3600
+BENCH paced_stress progress 3300/3600
+BENCH entering warm-cache replay phase
+BENCH warm_cache_replay progress 0/900
+BENCH warm_cache_replay progress 300/900
+BENCH warm_cache_replay progress 600/900
+BENCH entering no-cache diagnostic phase
+BENCH no_cache_diagnostic progress 0/300
+BENCH worker completed

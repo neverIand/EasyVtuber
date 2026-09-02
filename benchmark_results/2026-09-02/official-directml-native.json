@@ -1,0 +1,83 @@
+{
+  "backend": "directml",
+  "cache_before_stress": {
+    "ram": {
+      "hits": 0,
+      "miss": 1
+    },
+    "sr_ram": null,
+    "vram": null
+  },
+  "core_initialization_ms": 2692.5522999999885,
+  "directml_devices_at_core_creation": [
+    {
+      "description": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "device_id": "0",
+      "discrete": "1",
+      "dxgi_high_performance_index": "0",
+      "vendor": "NVIDIA"
+    },
+    {
+      "description": "Intel(R) UHD Graphics",
+      "device_id": "1",
+      "discrete": "0",
+      "dxgi_high_performance_index": "1",
+      "vendor": "Intel Corporation"
+    }
+  ],
+  "engine_sources": null,
+  "error": "GPU temperature reached 80 C",
+  "finished_at_local": "2026-09-02T08:00:53+0100",
+  "gpu": {
+    "available": true,
+    "error": null,
+    "gpu_average_percent": 25.9,
+    "gpu_peak_percent": 100.0,
+    "memory_average_percent": 13.575,
+    "power_peak_w": 111.896,
+    "sample_count": 40,
+    "stop_reason": "GPU temperature reached 80 C",
+    "temperature_peak_c": 81.0,
+    "vram_peak_bytes": 2171920384
+  },
+  "image_path": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\data\\images\\lambda_00.png",
+  "image_preprocess_ms": 297.5115999997797,
+  "label": "official",
+  "model_root": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-runtime-v0.8.0\\EasyVtuber\\data\\models",
+  "model_sha256": {
+    "decomposer.onnx": "b77a0e9dc419f591eeeb0c58204a75ce85bb9cfb742130d2863c014ba66844c8",
+    "merge_no_eyebrow.onnx": "5304a5568933be602db401253ee88bf5ac717ceeb4d885a91223eb33982142df"
+  },
+  "official_dml_backend_isolation": false,
+  "official_startup_cooldown_seconds": 0.0,
+  "pose_normalized_zero_sha256": "83d0e54920717e01832557861e3b4f0ea5ed06d24a9eb8324b2cd1c7dd6ef8ac",
+  "pose_path": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\ezvtuber-rt\\test\\data\\pose_20fps.json",
+  "pose_sha256": "83d0e54920717e01832557861e3b4f0ea5ed06d24a9eb8324b2cd1c7dd6ef8ac",
+  "pose_simplify_5000_ms": 257.7768000001015,
+  "pose_simplify_first_call_ms": 2035.8396999999968,
+  "pose_simplify_import_ms": 3.599499999836553,
+  "pose_unique_count": 4810,
+  "preprocessed_image_sha256": "b315c68dd569e459d76b400db8f2d471d5910ca3b8d3e703785cf05bd77c6cb9",
+  "runtime_import_ms": 296.1451000001034,
+  "set_image_ms": 20.431799999641953,
+  "settings": {
+    "debug_output": true,
+    "dml_device_id": 0,
+    "extend_movement": true,
+    "eyebrow": false,
+    "fps": 30.0,
+    "gpu_duty_percent": 90.0,
+    "model": "THA3 separable FP32",
+    "ram_cache_gib": 2.0,
+    "ram_cache_mode": "brotli",
+    "rife": false,
+    "simplify": 2,
+    "super_resolution": false,
+    "vram_cache_gib": 2.0
+  },
+  "source_root": "D:\\_Projects\\.Codex\\projectless\\2026-09-01\\nvidia-smi\\EasyVtuber-official-f7dd2de",
+  "status": "error",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\benchmarks\\performance_compare.py\", line 955, in worker\n    no_cache = _run_phase(\n  File \"D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\benchmarks\\performance_compare.py\", line 567, in _run_phase\n    sampler.ensure_safe()\n  File \"D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\benchmarks\\performance_compare.py\", line 289, in ensure_safe\n    raise RuntimeError(self.stop_reason)\nRuntimeError: GPU temperature reached 80 C\n",
+  "variant": "native",
+  "warmup_ms": 38.8823000002958
+}

@@ -1,0 +1,187 @@
+{
+  "backend": "directml",
+  "cache_before_stress": {
+    "ram": {
+      "hits": 0,
+      "miss": 1
+    },
+    "sr_ram": null,
+    "vram": null
+  },
+  "core_initialization_ms": 2513.332399999854,
+  "directml_devices_at_core_creation": [
+    {
+      "description": "Intel(R) UHD Graphics",
+      "device_id": "0",
+      "discrete": "0",
+      "dxgi_high_performance_index": "1",
+      "vendor": "Intel Corporation"
+    },
+    {
+      "description": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "device_id": "1",
+      "discrete": "1",
+      "dxgi_high_performance_index": "0",
+      "vendor": "NVIDIA"
+    }
+  ],
+  "engine_sources": null,
+  "error": "GPU temperature reached 80 C",
+  "finished_at_local": "2026-09-02T08:07:52+0100",
+  "gpu": {
+    "available": true,
+    "error": null,
+    "gpu_average_percent": 28.035714285714285,
+    "gpu_peak_percent": 83.0,
+    "memory_average_percent": 14.392857142857142,
+    "power_peak_w": 88.77,
+    "sample_count": 28,
+    "stop_reason": "GPU temperature reached 80 C",
+    "temperature_peak_c": 80.0,
+    "vram_peak_bytes": 1997656064
+  },
+  "image_path": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\data\\images\\lambda_00.png",
+  "image_preprocess_ms": 26.362100000369537,
+  "label": "current",
+  "model_root": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-runtime-v0.8.0\\EasyVtuber\\data\\models",
+  "model_sha256": {
+    "decomposer.onnx": "b77a0e9dc419f591eeeb0c58204a75ce85bb9cfb742130d2863c014ba66844c8",
+    "merge_no_eyebrow.onnx": "5304a5568933be602db401253ee88bf5ac717ceeb4d885a91223eb33982142df"
+  },
+  "official_dml_backend_isolation": false,
+  "official_startup_cooldown_seconds": 0.0,
+  "phases": {
+    "paced_stress": {
+      "cache_after": {
+        "ram": {
+          "hits": 149,
+          "miss": 152
+        },
+        "sr_ram": null,
+        "vram": null
+      },
+      "checkpoint_step": 10,
+      "cpu_seconds": 6.0,
+      "deadline_misses": 1,
+      "deadline_ms": 33.333333333333336,
+      "effective_fps": 29.979763060338502,
+      "final_bgr_checkpoint_sha256": "9ed65bb349a82c9f468826ee720da9784589bc22a8984d17ee8acccd4e2ea6d9",
+      "frames": 300,
+      "inference": {
+        "count": 300,
+        "max_ms": 111.17209999974875,
+        "mean_ms": 9.578265000030418,
+        "p50_ms": 17.358499999772903,
+        "p95_ms": 19.14793500036467,
+        "p99_ms": 24.85787300043739
+      },
+      "memory_after": {
+        "pagefile_bytes": 2456973312,
+        "peak_pagefile_bytes": 2459115520,
+        "peak_working_set_bytes": 813768704,
+        "working_set_bytes": 811798528
+      },
+      "name": "paced_stress",
+      "paced_fps": 30.0,
+      "postprocess": {
+        "count": 300,
+        "max_ms": 3.7716999995609513,
+        "mean_ms": 0.7751170000028651,
+        "p50_ms": 0.6256000001485518,
+        "p95_ms": 1.5946349998102967,
+        "p99_ms": 2.0848189999469438
+      },
+      "processing_total": {
+        "count": 300,
+        "max_ms": 111.70099999981176,
+        "mean_ms": 10.353382000033283,
+        "p50_ms": 17.81974999994418,
+        "p95_ms": 19.762904999834067,
+        "p99_ms": 25.31416200006788
+      },
+      "raw_checkpoint_sha256": "9931c63a3d1d1b52451cf91e79814af371a26155172cdd5bf7719f2e7783f947",
+      "wall_seconds": 10.00675020000017
+    },
+    "warm_cache_replay": {
+      "cache_after": {
+        "ram": {
+          "hits": 449,
+          "miss": 152
+        },
+        "sr_ram": null,
+        "vram": null
+      },
+      "checkpoint_step": 10,
+      "cpu_seconds": 0.71875,
+      "deadline_misses": 0,
+      "deadline_ms": null,
+      "effective_fps": 1899.9174169167597,
+      "final_bgr_checkpoint_sha256": "6051cdf71b974fb6106cd6fac4666302ed90aed4624e4dbeca1d3338d663e970",
+      "frames": 300,
+      "inference": {
+        "count": 300,
+        "max_ms": 0.03699999979289714,
+        "mean_ms": 0.01274999997804116,
+        "p50_ms": 0.012000000424450263,
+        "p95_ms": 0.01943500033121382,
+        "p99_ms": 0.029701999692406385
+      },
+      "memory_after": {
+        "pagefile_bytes": 2460700672,
+        "peak_pagefile_bytes": 2460700672,
+        "peak_working_set_bytes": 815206400,
+        "working_set_bytes": 815206400
+      },
+      "name": "warm_cache_replay",
+      "paced_fps": null,
+      "postprocess": {
+        "count": 300,
+        "max_ms": 0.6721999998262618,
+        "mean_ms": 0.4098250000030627,
+        "p50_ms": 0.41570000030333176,
+        "p95_ms": 0.5038399999193643,
+        "p99_ms": 0.6170719997044215
+      },
+      "processing_total": {
+        "count": 300,
+        "max_ms": 0.6828999994468177,
+        "mean_ms": 0.42257499998110387,
+        "p50_ms": 0.42789999997694395,
+        "p95_ms": 0.5192399999941699,
+        "p99_ms": 0.6303850000131205
+      },
+      "raw_checkpoint_sha256": "fb0c6cc0fcc71880ac5ba8657999b5a1c1b585a9fb0f006583861bfabe67297e",
+      "wall_seconds": 0.157901600000514
+    }
+  },
+  "pose_normalized_zero_sha256": "83d0e54920717e01832557861e3b4f0ea5ed06d24a9eb8324b2cd1c7dd6ef8ac",
+  "pose_path": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\ezvtuber-rt\\test\\data\\pose_20fps.json",
+  "pose_sha256": "c5df0062a1ceb77eda0fb77d690493ab389c4a97f93e3444609d053e88006b15",
+  "pose_simplify_5000_ms": 33.49359999992885,
+  "pose_simplify_first_call_ms": 0.1263999993170728,
+  "pose_simplify_import_ms": 6.025300000146672,
+  "pose_unique_count": 4810,
+  "preprocessed_image_sha256": "b315c68dd569e459d76b400db8f2d471d5910ca3b8d3e703785cf05bd77c6cb9",
+  "runtime_import_ms": 50.19009999978152,
+  "set_image_ms": 18.395699999928183,
+  "settings": {
+    "debug_output": true,
+    "dml_device_id": 1,
+    "extend_movement": true,
+    "eyebrow": false,
+    "fps": 30.0,
+    "gpu_duty_percent": 90.0,
+    "model": "THA3 separable FP32",
+    "ram_cache_gib": 2.0,
+    "ram_cache_mode": "raw",
+    "rife": false,
+    "simplify": 2,
+    "super_resolution": false,
+    "vram_cache_gib": 2.0
+  },
+  "source_root": "D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated",
+  "status": "error",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\benchmarks\\performance_compare.py\", line 958, in worker\n    no_cache = _run_phase(\n  File \"D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\benchmarks\\performance_compare.py\", line 567, in _run_phase\n    sampler.ensure_safe()\n  File \"D:\\_Projects\\.Codex\\projectless\\2026-08-30\\new-chat\\EasyVtuber-updated\\benchmarks\\performance_compare.py\", line 289, in ensure_safe\n    raise RuntimeError(self.stop_reason)\nRuntimeError: GPU temperature reached 80 C\n",
+  "variant": "auto",
+  "warmup_ms": 37.5848000003316
+}

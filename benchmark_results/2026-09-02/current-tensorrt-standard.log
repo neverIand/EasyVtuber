@@ -1,0 +1,81 @@
+BENCH worker start label=current backend=tensorrt
+[09/02/2026-07:53:45] [TRT] [I] Creating Engines
+BENCH resolving engine cache path for decomposer.onnx
+BENCH querying TensorRT/GPU cache identity
+BENCH resolved TensorRT/GPU cache identity: 1.3.0.35|device-id=0|name=NVIDIA GeForce RTX 4060 Laptop GPU|cc=(8, 9)
+BENCH resolved engine cache path for decomposer.onnx: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\decomposer-4cb2bf16de4523a8e571.trt
+[09/02/2026-07:53:45] [TRT] [I] Loading cached engine: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\decomposer-4cb2bf16de4523a8e571.trt
+[09/02/2026-07:53:45] [TRT] [I] Loaded engine size: 132 MiB
+[09/02/2026-07:53:45] [TRT] [I] Creating inference context
+[09/02/2026-07:53:48] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +9, now: CPU 0, GPU 138 (MiB)
+[09/02/2026-07:53:48] [TRT] [I] GPU safety cooldown after context creation (decomposer.onnx): 0.359s (target duty cycle 90.0%)
+[09/02/2026-07:53:48] [TRT] [I] Input nodes: ['input_image']
+[09/02/2026-07:53:48] [TRT] [I] Output nodes: ['background_layer', 'eyebrow_layer', 'image_prepared']
+BENCH resolving engine cache path for combiner.onnx
+BENCH querying TensorRT/GPU cache identity
+BENCH resolved TensorRT/GPU cache identity: 1.3.0.35|device-id=0|name=NVIDIA GeForce RTX 4060 Laptop GPU|cc=(8, 9)
+BENCH resolved engine cache path for combiner.onnx: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\combiner-583a7e88f4190d5085ca.trt
+[09/02/2026-07:53:48] [TRT] [I] Loading cached engine: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\combiner-583a7e88f4190d5085ca.trt
+[09/02/2026-07:53:48] [TRT] [I] Loaded engine size: 19 MiB
+[09/02/2026-07:53:48] [TRT] [I] Creating inference context
+[09/02/2026-07:53:51] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +22, now: CPU 0, GPU 174 (MiB)
+[09/02/2026-07:53:51] [TRT] [I] GPU safety cooldown after context creation (combiner.onnx): 0.331s (target duty cycle 90.0%)
+[09/02/2026-07:53:52] [TRT] [I] Input nodes: ['image_prepared', 'eyebrow_background_layer', 'eyebrow_layer', 'eyebrow_pose']
+[09/02/2026-07:53:52] [TRT] [I] Output nodes: ['eyebrow_image', '/face_morpher/body/downsample_blocks.3/downsample_blocks.3.3/Relu_output_0']
+BENCH resolving engine cache path for morpher.onnx
+BENCH querying TensorRT/GPU cache identity
+BENCH resolved TensorRT/GPU cache identity: 1.3.0.35|device-id=0|name=NVIDIA GeForce RTX 4060 Laptop GPU|cc=(8, 9)
+BENCH resolved engine cache path for morpher.onnx: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\morpher-c6b9dc8c75a0ec14d44d.trt
+[09/02/2026-07:53:52] [TRT] [I] Loading cached engine: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\morpher-c6b9dc8c75a0ec14d44d.trt
+[09/02/2026-07:53:52] [TRT] [I] Loaded engine size: 17 MiB
+[09/02/2026-07:53:52] [TRT] [I] Creating inference context
+[09/02/2026-07:53:53] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +33, now: CPU 0, GPU 221 (MiB)
+[09/02/2026-07:53:53] [TRT] [I] GPU safety cooldown after context creation (morpher.onnx): 0.153s (target duty cycle 90.0%)
+[09/02/2026-07:53:53] [TRT] [I] Input nodes: ['image_prepared', 'im_morpher_crop', 'face_pose', '/face_morpher/body/downsample_blocks.3/downsample_blocks.3.3/Relu_output_0']
+[09/02/2026-07:53:53] [TRT] [I] Output nodes: ['face_morphed_full', 'face_morphed_half']
+BENCH resolving engine cache path for rotator.onnx
+BENCH querying TensorRT/GPU cache identity
+BENCH resolved TensorRT/GPU cache identity: 1.3.0.35|device-id=0|name=NVIDIA GeForce RTX 4060 Laptop GPU|cc=(8, 9)
+BENCH resolved engine cache path for rotator.onnx: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\rotator-dc292decd20f459cd0f6.trt
+[09/02/2026-07:53:53] [TRT] [I] Loading cached engine: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\rotator-dc292decd20f459cd0f6.trt
+[09/02/2026-07:53:53] [TRT] [I] Loaded engine size: 18 MiB
+[09/02/2026-07:53:53] [TRT] [I] Creating inference context
+[09/02/2026-07:53:55] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +75, now: CPU 0, GPU 310 (MiB)
+[09/02/2026-07:53:55] [TRT] [I] GPU safety cooldown after context creation (rotator.onnx): 0.249s (target duty cycle 90.0%)
+[09/02/2026-07:53:56] [TRT] [I] Input nodes: ['face_morphed_half', 'rotation_pose']
+[09/02/2026-07:53:56] [TRT] [I] Output nodes: ['full_warped_image', 'full_grid_change']
+BENCH resolving engine cache path for editor.onnx
+BENCH querying TensorRT/GPU cache identity
+BENCH resolved TensorRT/GPU cache identity: 1.3.0.35|device-id=0|name=NVIDIA GeForce RTX 4060 Laptop GPU|cc=(8, 9)
+BENCH resolved engine cache path for editor.onnx: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\editor-06861c173caa304ae537.trt
+[09/02/2026-07:53:56] [TRT] [I] Loading cached engine: C:\Users\90833\AppData\Local\EasyVtuber\trt-cache\editor-06861c173caa304ae537.trt
+[09/02/2026-07:53:56] [TRT] [I] Loaded engine size: 21 MiB
+[09/02/2026-07:53:56] [TRT] [I] Creating inference context
+[09/02/2026-07:53:56] [TRT] [I] [MS] Running engine with multi stream info
+[09/02/2026-07:53:56] [TRT] [I] [MS] Number of aux streams is 2
+[09/02/2026-07:53:56] [TRT] [I] [MS] Number of total worker streams is 3
+[09/02/2026-07:53:56] [TRT] [I] [MS] The main stream provided by execute/enqueue calls is the first worker stream
+[09/02/2026-07:53:58] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +262, now: CPU 0, GPU 590 (MiB)
+[09/02/2026-07:53:58] [TRT] [I] GPU safety cooldown after context creation (editor.onnx): 0.237s (target duty cycle 90.0%)
+[09/02/2026-07:53:58] [TRT] [I] Input nodes: ['morphed_image', 'rotated_warped_image', 'rotated_grid_change', 'rotation_pose']
+[09/02/2026-07:53:58] [TRT] [I] Output nodes: ['result', 'cv_result']
+BENCH entering paced stress phase
+BENCH paced_stress progress 0/3600
+BENCH paced_stress progress 300/3600
+BENCH paced_stress progress 600/3600
+BENCH paced_stress progress 900/3600
+BENCH paced_stress progress 1200/3600
+BENCH paced_stress progress 1500/3600
+BENCH paced_stress progress 1800/3600
+BENCH paced_stress progress 2100/3600
+BENCH paced_stress progress 2400/3600
+BENCH paced_stress progress 2700/3600
+BENCH paced_stress progress 3000/3600
+BENCH paced_stress progress 3300/3600
+BENCH entering warm-cache replay phase
+BENCH warm_cache_replay progress 0/900
+BENCH warm_cache_replay progress 300/900
+BENCH warm_cache_replay progress 600/900
+BENCH entering no-cache diagnostic phase
+BENCH no_cache_diagnostic progress 0/300
+BENCH worker completed
