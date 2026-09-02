@@ -3,6 +3,8 @@ import importlib.util
 import os
 import subprocess
 import threading
+import time
+from collections import deque
 
 import wx
 import sys
@@ -20,6 +22,10 @@ from src.utils.launcher_config import (
     load_launcher_config,
     min_cutoff_mapper,
     save_launcher_config,
+)
+from src.utils.preview_ipc import (
+    PREVIEW_FPS,
+    PreviewSharedBuffer,
 )
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -355,6 +361,106 @@ def _read_pipe_to_stream(pipe, dest_stream, out_lines=None, on_line_callback=Non
             pass
 
 
+class PreviewCanvas(wx.Panel):
+    """Aspect-fitted RGBA output drawn beside the launcher's settings."""
+
+    def __init__(self, parent):
+        super().__init__(parent, style=wx.BORDER_SIMPLE)
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        self._bitmap = None
+        self._checkerboard = None
+        self._checkerboard_size = 0
+        self._message = '启动后在此显示角色画面'
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def SetFrame(self, frame):
+        height, width = frame.shape[:2]
+        self._bitmap = wx.Bitmap.FromBufferRGBA(
+            width,
+            height,
+            frame.tobytes(),
+        )
+        self.Refresh(False)
+
+    def SetMessage(self, message, clear=False):
+        self._message = message
+        if clear:
+            self._bitmap = None
+        self.Refresh(False)
+
+    def HasFrame(self):
+        return self._bitmap is not None and self._bitmap.IsOk()
+
+    def _get_checkerboard(self, size):
+        if self._checkerboard is not None and self._checkerboard_size == size:
+            return self._checkerboard
+
+        bitmap = wx.Bitmap(size, size)
+        dc = wx.MemoryDC(bitmap)
+        dc.SetBackground(wx.Brush(wx.Colour(56, 56, 60)))
+        dc.Clear()
+        square = max(8, size // 16)
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        colors = (wx.Colour(56, 56, 60), wx.Colour(76, 76, 82))
+        row = 0
+        current_y = 0
+        while current_y < size:
+            column = 0
+            current_x = 0
+            tile_height = min(square, size - current_y)
+            while current_x < size:
+                tile_width = min(square, size - current_x)
+                dc.SetBrush(wx.Brush(colors[(row + column) % 2]))
+                dc.DrawRectangle(
+                    current_x,
+                    current_y,
+                    tile_width,
+                    tile_height,
+                )
+                current_x += square
+                column += 1
+            current_y += square
+            row += 1
+        dc.SelectObject(wx.NullBitmap)
+        self._checkerboard = bitmap
+        self._checkerboard_size = size
+        return bitmap
+
+    def OnPaint(self, event):
+        del event
+        dc = wx.AutoBufferedPaintDC(self)
+        dc.SetBackground(wx.Brush(wx.Colour(38, 38, 42)))
+        dc.Clear()
+
+        width, height = self.GetClientSize()
+        padding = self.FromDIP(10)
+        size = max(1, min(width - 2 * padding, height - 2 * padding))
+        x = (width - size) // 2
+        y = (height - size) // 2
+        dc.DrawBitmap(self._get_checkerboard(size), x, y)
+
+        if self.HasFrame():
+            graphics = wx.GraphicsContext.Create(dc)
+            if graphics is not None:
+                graphics.DrawBitmap(self._bitmap, x, y, size, size)
+            return
+
+        dc.SetTextForeground(wx.Colour(225, 225, 230))
+        font = dc.GetFont()
+        font.SetWeight(wx.FONTWEIGHT_SEMIBOLD)
+        dc.SetFont(font)
+        dc.DrawLabel(
+            self._message,
+            wx.Rect(x, y, size, size),
+            wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL,
+        )
+
+    def OnSize(self, event):
+        self.Refresh(False)
+        event.Skip()
+
+
 class LauncherPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -365,6 +471,11 @@ class LauncherPanel(wx.Panel):
         self.sectionPages = {}
         self.sectionSizers = {}
         self._applying_safety_preset = False
+        self.previewBuffer = None
+        self.previewFrameTimes = deque(maxlen=PREVIEW_FPS)
+        self.previewStatusUpdatedAt = 0.0
+        self.previewTimer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.OnPreviewTimer, self.previewTimer)
         self.main_output_lines = []   # main 的 stdout 副本
         self.main_stderr_lines = []   # main 的 stderr 副本
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -411,7 +522,48 @@ class LauncherPanel(wx.Panel):
         self.mainSizer.Add(wx.StaticLine(self), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
         self.SetSizer(self.mainSizer)
 
+        self.contentSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.previewPane = wx.Panel(self)
+        self.previewPane.SetMinSize(self.FromDIP(wx.Size(300, -1)))
+        previewSizer = wx.BoxSizer(wx.VERTICAL)
+        self.previewPane.SetSizer(previewSizer)
+
+        previewTitle = wx.StaticText(self.previewPane, label='角色输出预览')
+        previewTitleFont = previewTitle.GetFont()
+        previewTitleFont.SetWeight(wx.FONTWEIGHT_SEMIBOLD)
+        previewTitleFont = previewTitleFont.MakeLarger()
+        previewTitle.SetFont(previewTitleFont)
+        previewSizer.Add(
+            previewTitle,
+            0,
+            wx.LEFT | wx.RIGHT | wx.TOP,
+            self.FromDIP(8),
+        )
+
+        self.previewCanvas = PreviewCanvas(self.previewPane)
+        previewSizer.Add(
+            self.previewCanvas,
+            1,
+            wx.EXPAND | wx.ALL,
+            self.FromDIP(8),
+        )
+        self.previewStatusText = '未运行 · 启动后将在这里显示角色画面。'
+        self.previewStatus = wx.StaticText(
+            self.previewPane,
+            label=self.previewStatusText,
+        )
+        self.previewStatus.Wrap(self.FromDIP(300))
+        previewSizer.Add(
+            self.previewStatus,
+            0,
+            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+            self.FromDIP(8),
+        )
+        self.previewPane.Bind(wx.EVT_SIZE, self.OnPreviewPaneSize)
+
         self.notebook = wx.Notebook(self)
+        self.notebook.SetMinSize(self.FromDIP(wx.Size(640, -1)))
         for section, label in (
             ('basic', '基本设置'),
             ('performance', '性能与安全'),
@@ -429,12 +581,25 @@ class LauncherPanel(wx.Panel):
             self.sectionPages[section] = page
             self.sectionSizers[section] = page_sizer
 
-        self.mainSizer.Add(
-            self.notebook,
-            1,
-            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+        self.contentSizer.Add(
+            self.previewPane,
+            2,
+            wx.EXPAND | wx.LEFT | wx.TOP | wx.BOTTOM,
             self.FromDIP(8),
         )
+        self.contentSizer.Add(
+            wx.StaticLine(self, style=wx.LI_VERTICAL),
+            0,
+            wx.EXPAND | wx.ALL,
+            self.FromDIP(8),
+        )
+        self.contentSizer.Add(
+            self.notebook,
+            3,
+            wx.EXPAND | wx.TOP | wx.RIGHT | wx.BOTTOM,
+            self.FromDIP(8),
+        )
+        self.mainSizer.Add(self.contentSizer, 1, wx.EXPAND)
 
         def addOption(key, section='basic', **kwargs):
             kwargs['default'] = args[key]
@@ -525,8 +690,8 @@ class LauncherPanel(wx.Panel):
         addOption(
             'output',
             title='输出 / Output',
-            desc='Spout2 可直接向 OBS 输出透明通道。',
-            choices=['Spout2', 'OBS VirtualCam', '调试窗口'],
+            desc='三种模式都会在左侧预览；前两项同时向外部程序发送。',
+            choices=['Spout2（OBS）', 'OBS VirtualCam', '仅启动器窗口'],
             mapping=[0, 1, 2],
         )
         addOption(
@@ -763,6 +928,104 @@ class LauncherPanel(wx.Panel):
             page.FitInside()
         self.Layout()
         self.frame.Layout()
+
+    def _set_preview_status(self, text):
+        self.previewStatusText = text
+        self._wrap_preview_status()
+        self.previewPane.Layout()
+
+    def _wrap_preview_status(self):
+        self.previewStatus.SetLabelText(self.previewStatusText)
+        self.previewStatus.Wrap(max(
+            self.FromDIP(220),
+            self.previewPane.GetClientSize().width - self.FromDIP(16),
+        ))
+
+    def OnPreviewPaneSize(self, event):
+        self._wrap_preview_status()
+        self.previewPane.Layout()
+        event.Skip()
+
+    def StartPreview(self):
+        self.StopPreview(clear=True)
+        try:
+            self.previewBuffer = PreviewSharedBuffer.create()
+        except (OSError, MemoryError, ValueError) as error:
+            self.previewCanvas.SetMessage('内嵌预览不可用', clear=True)
+            self._set_preview_status(
+                f'预览初始化失败；外部输出仍可继续：{error}'
+            )
+            return None
+
+        self.previewFrameTimes.clear()
+        self.previewStatusUpdatedAt = 0.0
+        self.previewCanvas.SetMessage('正在等待角色画面…', clear=True)
+        self._set_preview_status(
+            f'正在启动 · 预览最高 {PREVIEW_FPS} FPS，不限制实际输出。'
+        )
+        self.previewTimer.Start(max(1, round(1000 / PREVIEW_FPS)))
+        return self.previewBuffer.name
+
+    def StopPreview(self, message='未运行', clear=True):
+        if self.previewTimer.IsRunning():
+            self.previewTimer.Stop()
+        if self.previewBuffer is not None:
+            self.previewBuffer.close()
+            self.previewBuffer = None
+        self.previewFrameTimes.clear()
+        self.previewCanvas.SetMessage(message, clear=clear)
+        self._set_preview_status(message)
+
+    def OnPreviewTimer(self, event=None):
+        global p
+        if p is not None:
+            return_code = p.poll()
+            if return_code is not None:
+                p = None
+                self.btnLaunch.SetLabelText('保存并启动')
+                if return_code == 0:
+                    message = '运行已结束'
+                else:
+                    message = f'运行异常退出（代码 {return_code}）'
+                self.statusCtrl.SetValue(message)
+                self.StopPreview(message=message, clear=True)
+                return
+
+        if self.previewBuffer is None:
+            return
+        try:
+            frame = self.previewBuffer.read_latest()
+        except (OSError, TypeError, ValueError) as error:
+            self.previewTimer.Stop()
+            self.previewCanvas.SetMessage('预览读取失败', clear=True)
+            self._set_preview_status(
+                f'预览读取失败；实际输出仍在运行：{error}'
+            )
+            return
+        if frame is None:
+            return
+
+        self.previewCanvas.SetFrame(frame)
+        now = time.perf_counter()
+        self.previewFrameTimes.append(now)
+        if now - self.previewStatusUpdatedAt >= 0.5:
+            if len(self.previewFrameTimes) >= 2:
+                elapsed = self.previewFrameTimes[-1] - self.previewFrameTimes[0]
+                preview_fps = (
+                    (len(self.previewFrameTimes) - 1) / elapsed
+                    if elapsed > 0 else 0.0
+                )
+                status = (
+                    f'运行中 · 预览 {preview_fps:.1f} FPS · '
+                    '不限制实际输出。'
+                )
+            else:
+                status = '运行中 · 已收到首帧 · 不限制实际输出。'
+            self._set_preview_status(status)
+            self.previewStatusUpdatedAt = now
+
+        if event is not None:
+            event.Skip()
 
     def _update_safety_notice(self):
         preset = self.optionDict['safety_preset'].GetValue()
@@ -1138,6 +1401,7 @@ class LauncherPanel(wx.Panel):
                           stderr=subprocess.DEVNULL,
                           creationflags=creation_flags)
             p = None
+            self.StopPreview(message='已停止', clear=True)
             self.statusCtrl.Clear()
             self.btnLaunch.SetLabelText('保存并启动')
             return
@@ -1148,6 +1412,8 @@ class LauncherPanel(wx.Panel):
             self.statusCtrl.SetValue('已取消 TensorRT 启动')
             self.btnLaunch.SetLabelText('保存并启动')
             return
+
+        preview_shm_name = self.StartPreview()
 
         # If the launcher itself uses pythonw, start main with python.exe so its
         # output can still be captured by the status reader.
@@ -1160,6 +1426,7 @@ class LauncherPanel(wx.Panel):
             settings,
             python_exe,
             (display_size.width, display_size.height),
+            preview_shm_name=preview_shm_name,
         )
 
         print('Launched: ' + ' '.join(run_args))
@@ -1179,6 +1446,7 @@ class LauncherPanel(wx.Panel):
                 creationflags=creation_flags,
             )
         except OSError as error:
+            self.StopPreview(message='启动失败', clear=True)
             self.statusCtrl.SetValue('启动失败')
             self.btnLaunch.SetLabelText('保存并启动')
             wx.MessageBox(
@@ -1220,6 +1488,8 @@ class MainFrame(wx.Frame):
                           stdout=subprocess.DEVNULL,
                           stderr=subprocess.DEVNULL,
                           creationflags=creation_flags)
+            p = None
+        self.panel.StopPreview(message='已关闭', clear=True)
         e.Skip()
 
     def InitUi(self):
@@ -1228,8 +1498,8 @@ class MainFrame(wx.Frame):
         self.panel = LauncherPanel(self)
         self.fSizer.Add(self.panel, 1, wx.EXPAND)
         self.SetSizer(self.fSizer)
-        self.SetMinSize(self.FromDIP(wx.Size(680, 520)))
-        self.SetClientSize(self.FromDIP(wx.Size(820, 700)))
+        self.SetMinSize(self.FromDIP(wx.Size(1120, 520)))
+        self.SetClientSize(self.FromDIP(wx.Size(1180, 700)))
         self.Layout()
         self.panel._layout_options()
         self.Centre()

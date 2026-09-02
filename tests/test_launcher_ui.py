@@ -10,7 +10,9 @@ class LauncherUiTests(unittest.TestCase):
         project_root = Path(__file__).resolve().parents[1]
         body = r'''
 import wx
+import numpy as np
 import launcher2
+from src.utils.preview_ipc import PreviewSharedBuffer
 
 app = wx.App(False)
 frame = launcher2.MainFrame(None)
@@ -20,6 +22,10 @@ assert [
     panel.notebook.GetPageText(index)
     for index in range(panel.notebook.GetPageCount())
 ] == ['基本设置', '性能与安全', '高级设置']
+assert panel.notebook.GetPageCount() == 3
+assert panel.previewPane.IsShown()
+frame.Layout()
+assert panel.previewPane.GetPosition().x < panel.notebook.GetPosition().x
 assert panel.optionSections['frame_rate_limit'] == 'performance'
 assert panel.optionDict['safety_preset'].control.GetItems() == [
     '保守（低温优先）',
@@ -55,9 +61,21 @@ panel.optionDict['ram_cache_size'].SetValue('0b')
 panel.OnCacheSettingsChanged()
 assert not panel.optionDict['ram_cache_mode'].IsShown()
 
+preview_name = panel.StartPreview()
+assert preview_name
+writer = PreviewSharedBuffer.attach(preview_name)
+try:
+    preview_frame = np.full((512, 512, 4), 127, dtype=np.uint8)
+    writer.publish_rgba(preview_frame)
+    panel.OnPreviewTimer()
+    assert panel.previewCanvas.HasFrame()
+finally:
+    writer.close()
+    panel.StopPreview()
+
 # Exercise the supported narrow window and every tab at the process's real
 # Windows DPI scale. Hidden controls must not prevent any page from laying out.
-frame.SetClientSize(frame.FromDIP(wx.Size(680, 520)))
+frame.SetClientSize(frame.FromDIP(wx.Size(1120, 520)))
 for index in range(panel.notebook.GetPageCount()):
     panel.notebook.SetSelection(index)
     frame.Layout()

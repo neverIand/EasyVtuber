@@ -153,6 +153,20 @@ class LauncherConfigTests(unittest.TestCase):
             self.assertEqual(loaded['ram_cache_mode'], 'brotli')
             self.assertFalse(Path(str(path) + '.tmp').exists())
 
+    def test_preview_transport_is_ephemeral_command_state(self):
+        command = build_launch_command(
+            DEFAULT_LAUNCHER_CONFIG,
+            r'C:\Python\python.exe',
+            (1920, 1080),
+            preview_shm_name='easyvtuber-preview-test',
+        )
+
+        self.assertEqual(
+            command[-2:],
+            ['--preview_shm', 'easyvtuber-preview-test'],
+        )
+        self.assertNotIn('preview_shm', normalize_launcher_config({}))
+
 
 if __name__ == '__main__':
     unittest.main()

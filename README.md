@@ -44,7 +44,7 @@ Updates:
 使用Spout2插件可以提供透明通道给OBS，访问 https://github.com/Off-World-Live/obs-spout2-plugin/releases 项目，请选择与你的OBS版本兼容的插件安装exe。
 
 ### 启动项目
-双击`01A.启动器.bat` 或 `01B.启动器（调试输出）.bat` 打开启动器。先在`基本设置`中选择角色、输入和输出；输出帧率、运行安全预设、GPU 持续占空目标、后端、显卡和缓存集中在`性能与安全`；模型精度、补帧和超分位于`高级设置`。点击`保存并启动`运行，按钮随后会变为`停止`。如有问题请先参考本页末的 FAQ。
+双击`01A.启动器.bat` 或 `01B.启动器（调试输出）.bat` 打开启动器。角色输出常驻显示在窗口左侧，右侧用于设置：先在`基本设置`中选择角色、输入和输出；输出帧率、运行安全预设、GPU 持续占空目标、后端、显卡和缓存集中在`性能与安全`；模型精度、补帧和超分位于`高级设置`。点击`保存并启动`运行，按钮随后会变为`停止`。如有问题请先参考本页末的 FAQ。
 
 ## 输入输出设备  
 #### SPOUT2 OBS插件输出
@@ -130,6 +130,15 @@ https://github.com/emilianavt/OpenSeeFace/releases
 #### 启动器分组与运行安全预设
 
 启动器现在按`基本设置`、`性能与安全`、`高级设置`分为三个标签页。角色、输入和输出位于基本设置；安全预设、输出帧率、GPU 持续占空目标、后端、显卡和缓存位于性能与安全；模型精度、超分、补帧和图像处理位于高级设置。DirectML 显卡、TensorRT VRAM 缓存、输入地址等只会在相关配置下显示，窗口缩小时可滚动。
+
+角色画面不占用单独的标签页，而是常驻在三个设置页左侧。通过启动器运行时，`仅启动器窗口`会用内嵌画面替代原来的 OpenCV 弹窗；选择 Spout2 或 OBS VirtualCam 时，外部输出照常发送，左侧同时提供本地预览。预览采用无需等待 UI 的最新帧双缓冲，最大为 512²、最高 30 FPS；这些限制只作用于启动器显示，不会降低实际输出分辨率或帧率。RGBA 透明区域以棋盘格显示。
+
+仓库保留了可重复使用的界面与预览回归工具，后续无需再临时生成截图脚本。`benchmarks/capture_launcher_ui.py`可指定标签页、DIP 窗口尺寸、示例角色图和 PNG 输出路径；`benchmarks/benchmark_preview_path.py`会分别测量输出槽内的原始帧拷贝、释放输出槽后的缩放/颜色转换/共享内存发布，全程不启动 GPU 模型。例如：
+
+```powershell
+envs\python_embedded\python.exe benchmarks\capture_launcher_ui.py --page basic --width 1120 --height 520 --output ..\work\launcher-ui-min.png
+envs\python_embedded\python.exe benchmarks\benchmark_preview_path.py
+```
 
 `运行安全预设`只组合 FPS 与 GPU 持续占空目标，不会修改模型、Full/Half 精度、输入简化、缓存容量、补帧或超分：
 

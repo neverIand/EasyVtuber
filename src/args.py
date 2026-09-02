@@ -45,6 +45,12 @@ parser.add_argument('--breath_cycle', type=float, default=float('inf'))
 parser.add_argument('--output_virtual_cam', action='store_true')
 parser.add_argument('--output_spout2', action='store_true')
 parser.add_argument('--output_debug', action='store_true')
+parser.add_argument(
+    '--preview_shm',
+    type=str,
+    default=None,
+    help=argparse.SUPPRESS,
+)
 
 parser.add_argument('--alpha_split', action='store_true')
 parser.add_argument('--bongo', action='store_true')

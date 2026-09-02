@@ -9,6 +9,11 @@ from multiprocessing import shared_memory
 from .utils.timer_wait import wait_until
 from PIL import Image
 from .utils.fps import FPS
+from .utils.preview_ipc import (
+    PREVIEW_FPS,
+    PreviewFrameFormatter,
+    PreviewSharedBuffer,
+)
 from .utils.student_models import student_character_path
 
 
@@ -88,6 +93,35 @@ def main():
         for i in range(args.interpolation_scale)
     ]
 
+    preview_buffer = None
+    preview_formatter = None
+    preview_source_frame = None
+    if args.output_virtual_cam:
+        preview_source_format = 'RGB'
+    elif args.output_spout2:
+        preview_source_format = 'RGBA'
+    else:
+        preview_source_format = 'BGR'
+    if args.preview_shm:
+        try:
+            preview_buffer = PreviewSharedBuffer.attach(args.preview_shm)
+            preview_formatter = PreviewFrameFormatter(
+                preview_buffer.width,
+                preview_buffer.height,
+            )
+            preview_source_frame = np.empty_like(np_ret_shms[0])
+            print(
+                f'Launcher preview attached: {preview_buffer.width}x'
+                f'{preview_buffer.height} at up to {PREVIEW_FPS} FPS'
+            )
+        except (OSError, MemoryError, ValueError) as error:
+            if preview_buffer is not None:
+                preview_buffer.close(unlink=False)
+                preview_buffer = None
+            preview_formatter = None
+            preview_source_frame = None
+            print(f'Launcher preview unavailable: {error}')
+
     last_time: float = time.perf_counter()
     interval: float = 1.0 / args.frame_rate_limit if args.frame_rate_limit > 0 else 0.0
 
@@ -114,7 +148,10 @@ def main():
             np_ret_shms[0].shape
         )
     else:
-        print("Using OpenCV windows for output display.")
+        if preview_buffer is not None:
+            print("Using the embedded launcher window for output display.")
+        else:
+            print("Using OpenCV windows for output display.")
 
     pipeline_fps = FPS()
     last_batch_start_time = None  # 上一批就绪时间，用于周期估计
@@ -123,6 +160,7 @@ def main():
     n_frames = args.interpolation_scale
     min_period = n_frames * interval if interval > 0 else n_frames / 60.0  # 60fps 下本批最少占用时间
     default_period = 1.0 / 15.0  # 约 15fps 推理时的周期，首包无历史时使用
+    next_preview_time = 0.0
 
     print("Interval set to {:.3f} seconds".format(interval))
     while True:
@@ -157,16 +195,40 @@ def main():
                     ),
                     False,
                 )
-            else:
+            elif preview_buffer is None:
                 cv2.imshow("EasyVtuber Debug Frame", np_ret_shms[i])
                 cv2.waitKey(1)
             now_send = time.perf_counter()
+            preview_due = (
+                preview_buffer is not None
+                and now_send >= next_preview_time
+            )
+            if preview_due:
+                # Release the inference/output slot after only a raw copy. The
+                # resize, color conversion and UI transport happen afterward.
+                np.copyto(preview_source_frame, np_ret_shms[i])
             # 限速：下一帧最早在 last_time + interval，若已落后于当前时间则对齐到 now
             if interval > 0:
                 last_time += interval
                 if last_time < now_send:
                     last_time = now_send
             ret_batch_shm_channels[i].release()
+
+            if preview_due:
+                try:
+                    preview_buffer.publish_rgba(
+                        preview_formatter.format(
+                            preview_source_frame,
+                            preview_source_format,
+                        )
+                    )
+                except (OSError, MemoryError, TypeError, ValueError) as error:
+                    print(f'Launcher preview disabled: {error}')
+                    preview_buffer.close(unlink=False)
+                    preview_buffer = None
+                    preview_formatter = None
+                    preview_source_frame = None
+                next_preview_time = now_send + 1.0 / PREVIEW_FPS
         output_pipeline_fps_val = pipeline_fps() * args.interpolation_scale
         infer_process.output_pipeline_fps.value = output_pipeline_fps_val
         now = time.perf_counter()

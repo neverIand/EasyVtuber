@@ -224,7 +224,12 @@ def describe_ram_cache(
     )
 
 
-def build_launch_command(config, python_executable, display_size):
+def build_launch_command(
+    config,
+    python_executable,
+    display_size,
+    preview_shm_name=None,
+):
     """Build the exact argv passed to src.main without depending on wx."""
     settings = normalize_launcher_config(config)
     run_args = [str(python_executable), '-m', 'src.main']
@@ -347,4 +352,6 @@ def build_launch_command(config, python_executable, display_size):
         ('--filter_min_cutoff', str(min_cutoff_mapper(settings['min_cutoff'])))
     )
     run_args.extend(('--filter_beta', str(beta_mapper(settings['beta']))))
+    if preview_shm_name:
+        run_args.extend(('--preview_shm', str(preview_shm_name)))
     return run_args
