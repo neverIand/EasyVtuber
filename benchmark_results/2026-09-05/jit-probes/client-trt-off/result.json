@@ -1,0 +1,26 @@
+{
+  "startup_seconds": 14.97393590000138,
+  "fallback_used": false,
+  "frame_rgba_sha256": "67829a4fc8bc596af1a54c942b171154d7e475244d0174d76d936a6f0098d73a",
+  "status": "ok",
+  "cache_mode": "off",
+  "workers": [
+    {
+      "pid": 20328,
+      "exited": true
+    }
+  ],
+  "gpu": {
+    "available": true,
+    "error": null,
+    "stop_reason": null,
+    "sample_count": 31,
+    "gpu_average_percent": 5.258064516129032,
+    "gpu_peak_percent": 77.0,
+    "memory_average_percent": 9.709677419354838,
+    "temperature_peak_c": 53.0,
+    "vram_peak_bytes": 1372377088,
+    "power_peak_w": 19.439
+  },
+  "safety_reason": []
+}

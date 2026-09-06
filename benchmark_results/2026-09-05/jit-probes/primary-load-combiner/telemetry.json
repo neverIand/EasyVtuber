@@ -1,0 +1,18 @@
+[
+  {
+    "monotonic_seconds": 1956.7778772,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 22.0,
+    "temperature_c": 47.0,
+    "vram_used_bytes": 499257344.0,
+    "power_w": 4.459
+  },
+  {
+    "monotonic_seconds": 1957.2912635,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 6.0,
+    "temperature_c": 47.0,
+    "vram_used_bytes": 621539328.0,
+    "power_w": 4.56
+  }
+]

@@ -1,0 +1,51 @@
+{
+  "status": "ok",
+  "pipeline": "THA3 separable FP32",
+  "context": "user",
+  "runtime_cache": "load",
+  "graph": "on",
+  "input_image_sha256": "b315c68dd569e459d76b400db8f2d471d5910ca3b8d3e703785cf05bd77c6cb9",
+  "pose_sha256": "921f79f1994cfd4e81d2b3364545ec1b3a48c3caf5d0bec2d17ae51ee2fdbc29",
+  "output_sha256": [
+    "306e7b60fd23caba3669e1d913cb2b4bc8579acdede90e7c182d7ba9d7fe968d",
+    "c768d6321223518fbaa69148696da8d4f8922f58128b3b8c8855d1b371ad1b85",
+    "23ef8168fe965c80e679af4f68f297c40437def43b0fb1054512fd4815495a40",
+    "f45be789c07692ee3f4e9c9f15c52511c51b743d6669e8e147f36c48307a30d5"
+  ],
+  "durations_ms": {
+    "cuda_context": 76.49059999994279,
+    "decomposer.deserialize": 58.89899999965564,
+    "decomposer.runtime.load": 129.8442000002069,
+    "decomposer.context": 69.39959999999701,
+    "combiner.deserialize": 8.47799999974086,
+    "combiner.runtime.load": 148.57630000005884,
+    "combiner.context": 79.02839999997013,
+    "morpher.deserialize": 8.182799999758572,
+    "morpher.runtime.load": 64.7121000001789,
+    "morpher.context": 50.50310000024183,
+    "rotator.deserialize": 9.3179999998938,
+    "rotator.runtime.load": 74.70800000010058,
+    "rotator.context": 81.50800000021263,
+    "editor.deserialize": 12.158799999724579,
+    "editor.runtime.load": 93.97239999998419,
+    "editor.context": 113.70289999968008,
+    "core.construct": 1208.2707999998092,
+    "decomposer.runtime.save": 38.00739999996949,
+    "combiner.runtime.save": 74.80600000008053,
+    "core.set_image": 124.73409999984142,
+    "morpher.runtime.save": 22.704500000145345,
+    "rotator.runtime.save": 28.722400000333437,
+    "editor.runtime.save": 30.931100000088918,
+    "core.inference.0": 114.54809999986537,
+    "core.inference.1": 15.290800000002491,
+    "core.inference.2": 15.674900000249181,
+    "core.inference.3": 15.480600000046252
+  },
+  "cache_sizes": {
+    "combiner.runtime.cache": 1582677,
+    "decomposer.runtime.cache": 1229040,
+    "editor.runtime.cache": 1066686,
+    "morpher.runtime.cache": 732401,
+    "rotator.runtime.cache": 976350
+  }
+}

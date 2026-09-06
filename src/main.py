@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import time
 from .model_infer_client import ModelClientProcess
 from .args import args
@@ -16,6 +17,7 @@ from .utils.preview_ipc import (
     PreviewSharedBuffer,
 )
 from .utils.student_models import student_character_path
+from .utils.model_startup import start_model_process
 
 
 def main():
@@ -76,9 +78,21 @@ def main():
     input_process.daemon = True
     input_process.start()
 
-    infer_process = ModelClientProcess(input_image, pose_position_shm, input_fps)
-    infer_process.daemon = True
-    infer_process.start()
+    runtime_cache_trial = args.use_tensorrt and os.environ.get(
+        'EZVTB_TRT_RUNTIME_CACHE', '').strip().lower() in ('1', 'true', 'yes', 'on')
+    try:
+        infer_process = start_model_process(
+            lambda **options: ModelClientProcess(input_image, pose_position_shm, input_fps, **options),
+            runtime_cache_trial=runtime_cache_trial,
+            allow_engine_build=os.environ.get(
+                'EZVTB_TRT_REQUIRE_ENGINE_CACHE', '').strip().lower() not in ('1', 'true', 'yes', 'on'),
+        )
+    except BaseException:
+        input_process.terminate()
+        input_process.join(timeout=5)
+        pose_position_shm.close()
+        pose_position_shm.unlink()
+        raise
 
     cam_width_scale = 2 if args.alpha_split else 1
     ret_channels = 3 if args.output_virtual_cam or args.output_debug else 4

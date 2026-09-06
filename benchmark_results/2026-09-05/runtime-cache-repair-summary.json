@@ -1,0 +1,245 @@
+{
+  "recorded_at_utc": "2026-09-05T20:59:24.256266+00:00",
+  "versions": {
+    "tensorrt-rtx": "1.3.0.35",
+    "pycuda": "2025.1.2",
+    "onnx": "1.17.0",
+    "numpy": "2.2.6"
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "driver": "596.49",
+    "compute_capability": [
+      8,
+      9
+    ]
+  },
+  "main_base": "1a6b6cb",
+  "runtime_base": "43d67b8",
+  "changes": "Initial GPU validation snapshot; see production_rollout for the applied launcher policy.",
+  "cpu_regressions": {
+    "main": 69,
+    "runtime": 55,
+    "failed": 0,
+    "wx_ui_tests_run": false
+  },
+  "valid_tensorrt_cases": 14,
+  "historical_native_hang_reproduced": false,
+  "all_owned_workers_exited": true,
+  "output_matches": {
+    "single_engine_cases": 6,
+    "four_pose_pipeline_cases": 5,
+    "client_first_frame_cases": 3
+  },
+  "temperature_peak_c": 56.0,
+  "gpu_sample_peak_percent": 95.0,
+  "runtime_cache_enabled_by_default": false,
+  "production_cache_files_after": [
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\decomposer-4cb2bf16de4523a8e571.trt",
+      "bytes": 139208684,
+      "mtime_utc": "2026-09-01T23:54:48.782821+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\decomposer-e7252816687196b870ba.runtime.cache",
+      "bytes": 1229040,
+      "mtime_utc": "2026-09-01T23:54:54.060727+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\combiner-583a7e88f4190d5085ca.trt",
+      "bytes": 20280108,
+      "mtime_utc": "2026-09-01T23:54:55.584214+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\combiner-885510be5d22e8073525.runtime.cache",
+      "bytes": 1582677,
+      "mtime_utc": "2026-09-01T23:54:58.999147+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\morpher-c6b9dc8c75a0ec14d44d.trt",
+      "bytes": 18665652,
+      "mtime_utc": "2026-09-01T23:54:59.890017+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\morpher-9d07d15a8b289fc6faf5.runtime.cache",
+      "bytes": 732401,
+      "mtime_utc": "2026-09-01T23:55:01.554961+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\rotator-dc292decd20f459cd0f6.trt",
+      "bytes": 18876516,
+      "mtime_utc": "2026-09-01T23:55:02.381887+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\rotator-779cc74dcf164bf44d74.runtime.cache",
+      "bytes": 976350,
+      "mtime_utc": "2026-09-01T23:55:05.204951+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\editor-06861c173caa304ae537.trt",
+      "bytes": 22885076,
+      "mtime_utc": "2026-09-01T23:55:06.355312+00:00"
+    },
+    {
+      "path": "C:\\Users\\90833\\AppData\\Local\\EasyVtuber\\trt-cache\\editor-47a5929af4ecb22981db.runtime.cache",
+      "bytes": 1066686,
+      "mtime_utc": "2026-09-01T23:55:09.179274+00:00"
+    }
+  ],
+  "production_schema2_runtime_files_created": false,
+  "excluded_cases": {
+    "client-load-1": "TensorRT DLL PATH removed by sandbox; silently ran DirectML before strict-backend guard was added.",
+    "client-load-2": "Same sandbox PATH issue; DirectML fallback confirmed by console log."
+  },
+  "watchdog_selftest": {
+    "expected_timeout": true,
+    "elapsed_seconds": 1.1879999999998745,
+    "worker_exited": true
+  },
+  "cases": [
+    {
+      "name": "application-user-old-combiner",
+      "result": "jit-probes/application-user-old-combiner/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 1.0619999999998981,
+      "core_construct_ms": null,
+      "context_create_ms": 75.3471000002719,
+      "temperature_peak_c": 52.0
+    },
+    {
+      "name": "client-trt-load-1",
+      "result": "jit-probes/client-trt-load-1/result.json",
+      "startup_seconds": 5.030043700000533,
+      "elapsed_seconds": null,
+      "core_construct_ms": null,
+      "context_create_ms": null,
+      "temperature_peak_c": 56.0
+    },
+    {
+      "name": "client-trt-load-2",
+      "result": "jit-probes/client-trt-load-2/result.json",
+      "startup_seconds": 2.019531799996912,
+      "elapsed_seconds": null,
+      "core_construct_ms": null,
+      "context_create_ms": null,
+      "temperature_peak_c": 51.0
+    },
+    {
+      "name": "client-trt-off",
+      "result": "jit-probes/client-trt-off/result.json",
+      "startup_seconds": 14.97393590000138,
+      "elapsed_seconds": null,
+      "core_construct_ms": null,
+      "context_create_ms": null,
+      "temperature_peak_c": 53.0
+    },
+    {
+      "name": "pipeline-application-load-1",
+      "result": "jit-probes/pipeline-application-load-1/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 2.6100000000001273,
+      "core_construct_ms": 989.4188000002941,
+      "context_create_ms": null,
+      "temperature_peak_c": 52.0
+    },
+    {
+      "name": "pipeline-primary-fresh",
+      "result": "jit-probes/pipeline-primary-fresh/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 20.172000000000025,
+      "core_construct_ms": 17935.47699999999,
+      "context_create_ms": null,
+      "temperature_peak_c": 53.0
+    },
+    {
+      "name": "pipeline-primary-load-1",
+      "result": "jit-probes/pipeline-primary-load-1/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 2.6089999999999236,
+      "core_construct_ms": 1011.6957999998704,
+      "context_create_ms": null,
+      "temperature_peak_c": 53.0
+    },
+    {
+      "name": "pipeline-user-off",
+      "result": "jit-probes/pipeline-user-off/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 18.125,
+      "core_construct_ms": 15799.683400000049,
+      "context_create_ms": null,
+      "temperature_peak_c": 52.0
+    },
+    {
+      "name": "pipeline-user-old",
+      "result": "jit-probes/pipeline-user-old/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 3.0,
+      "core_construct_ms": 1208.2707999998092,
+      "context_create_ms": null,
+      "temperature_peak_c": 55.0
+    },
+    {
+      "name": "primary-fresh-combiner",
+      "result": "jit-probes/primary-fresh-combiner/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 5.5,
+      "core_construct_ms": null,
+      "context_create_ms": 3860.669400000006,
+      "temperature_peak_c": 51.0
+    },
+    {
+      "name": "primary-load-combiner",
+      "result": "jit-probes/primary-load-combiner/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 0.8440000000000509,
+      "core_construct_ms": null,
+      "context_create_ms": 85.91200000000754,
+      "temperature_peak_c": 47.0
+    },
+    {
+      "name": "primary-off-combiner",
+      "result": "jit-probes/primary-off-combiner/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 6.1879999999998745,
+      "core_construct_ms": null,
+      "context_create_ms": 4234.9999999999,
+      "temperature_peak_c": 51.0
+    },
+    {
+      "name": "primary-old-combiner",
+      "result": "jit-probes/primary-old-combiner/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 0.8120000000001255,
+      "core_construct_ms": null,
+      "context_create_ms": 73.70170000012877,
+      "temperature_peak_c": 46.0
+    },
+    {
+      "name": "user-load-combiner",
+      "result": "jit-probes/user-load-combiner/result.json",
+      "startup_seconds": null,
+      "elapsed_seconds": 0.9379999999998745,
+      "core_construct_ms": null,
+      "context_create_ms": 80.21340000004784,
+      "temperature_peak_c": 48.0
+    }
+  ],
+  "production_rollout": {
+    "recorded_at_utc": "2026-09-05T21:23:30.368770+00:00",
+    "user_confirmed_faster_restart": true,
+    "user_authorized_apply_and_commit": true,
+    "launcher_runtime_cache_default": true,
+    "sdk_runtime_cache_default": false,
+    "debug_entry": "01B",
+    "legacy_entry": "01C (same settings)",
+    "explicit_cache_disable_supported": "EZVTB_TRT_RUNTIME_CACHE=0",
+    "cpu_regressions": {
+      "main": 76,
+      "runtime": 55,
+      "failed": 0
+    },
+    "additional_gpu_probes_run": false,
+    "engine_build_policy": "Typed missing-engine failure from the first guarded worker may enter the existing build path with runtime cache off; strict probes and cache-failure recovery never build.",
+    "runtime_commit": "65048dfe322c034442e5fb4595eccad42ace5ed3"
+  }
+}

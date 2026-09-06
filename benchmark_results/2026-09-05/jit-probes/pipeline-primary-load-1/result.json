@@ -1,0 +1,72 @@
+{
+  "status": "ok",
+  "reason": null,
+  "returncode": 0,
+  "worker_pid": 26484,
+  "worker_exited": true,
+  "last_stage": "shutdown",
+  "elapsed_seconds": 2.6089999999999236,
+  "gpu": {
+    "available": true,
+    "error": null,
+    "stop_reason": null,
+    "sample_count": 6,
+    "gpu_average_percent": 5.333333333333333,
+    "gpu_peak_percent": 15.0,
+    "memory_average_percent": 8.833333333333334,
+    "temperature_peak_c": 53.0,
+    "vram_peak_bytes": 1315303424,
+    "power_peak_w": 25.464
+  },
+  "worker": {
+    "status": "ok",
+    "pipeline": "THA3 separable FP32",
+    "context": "primary",
+    "runtime_cache": "load",
+    "graph": "on",
+    "input_image_sha256": "b315c68dd569e459d76b400db8f2d471d5910ca3b8d3e703785cf05bd77c6cb9",
+    "pose_sha256": "921f79f1994cfd4e81d2b3364545ec1b3a48c3caf5d0bec2d17ae51ee2fdbc29",
+    "output_sha256": [
+      "306e7b60fd23caba3669e1d913cb2b4bc8579acdede90e7c182d7ba9d7fe968d",
+      "c768d6321223518fbaa69148696da8d4f8922f58128b3b8c8855d1b371ad1b85",
+      "23ef8168fe965c80e679af4f68f297c40437def43b0fb1054512fd4815495a40",
+      "f45be789c07692ee3f4e9c9f15c52511c51b743d6669e8e147f36c48307a30d5"
+    ],
+    "durations_ms": {
+      "cuda_context": 0.04780000017490238,
+      "decomposer.deserialize": 64.26999999985128,
+      "decomposer.runtime.load": 99.18330000027709,
+      "decomposer.context": 68.48219999983485,
+      "combiner.deserialize": 9.52629999983401,
+      "combiner.runtime.load": 116.71769999975368,
+      "combiner.context": 77.22079999984999,
+      "morpher.deserialize": 7.564999999885913,
+      "morpher.runtime.load": 52.656500000011874,
+      "morpher.context": 55.31669999982114,
+      "rotator.deserialize": 8.73840000031123,
+      "rotator.runtime.load": 72.67109999975219,
+      "rotator.context": 58.20679999987988,
+      "editor.deserialize": 9.384999999838328,
+      "editor.runtime.load": 88.55440000024828,
+      "editor.context": 63.7085999996998,
+      "core.construct": 1011.6957999998704,
+      "decomposer.runtime.save": 23.10029999989638,
+      "combiner.runtime.save": 47.59550000017043,
+      "core.set_image": 82.52260000017486,
+      "morpher.runtime.save": 15.135000000100263,
+      "rotator.runtime.save": 19.3570000001273,
+      "editor.runtime.save": 21.259200000258716,
+      "core.inference.0": 79.74689999991824,
+      "core.inference.1": 15.482300000257965,
+      "core.inference.2": 15.332100000250648,
+      "core.inference.3": 15.509599999859347
+    },
+    "cache_sizes": {
+      "combiner.runtime.cache": 1582505,
+      "decomposer.runtime.cache": 1229040,
+      "editor.runtime.cache": 1066858,
+      "morpher.runtime.cache": 732401,
+      "rotator.runtime.cache": 976350
+    }
+  }
+}

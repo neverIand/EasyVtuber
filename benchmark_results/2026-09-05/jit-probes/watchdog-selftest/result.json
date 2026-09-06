@@ -1,0 +1,10 @@
+{
+  "status": "failed",
+  "reason": "stage_timeout: native_gil_block",
+  "returncode": 1,
+  "worker_pid": 6672,
+  "worker_exited": true,
+  "last_stage": "native_gil_block",
+  "elapsed_seconds": 1.1879999999998745,
+  "gpu": null
+}

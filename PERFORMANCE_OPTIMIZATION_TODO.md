@@ -1,10 +1,12 @@
 # EasyVtuber 性能优化审计与待办
 
-更新日期：2026-09-02
+更新日期：2026-09-05
 工作分支：主项目 `codex/gpu-safety-90`；运行时子模块 `codex/trt-cache-safety`  
 目标：在不降低模型精度、不改变最终图像或动作数值的前提下，提高启动速度、稳定帧时间和缓存效率，并把持续 GPU 推理占空比限制在 90% 以内。
 
 ## 1. 当前结论
+
+后续 runtime JIT cache 修复已正式应用：用户确认试用启动器停止再启动明显加快，并要求应用及提交。A/B 默认开启带 60 秒启动超时与一次关闭缓存回退的 runtime cache；普通启动用 A，调试用 B，C 保留相同配置作为兼容入口。缺少可用引擎时保留原有构建确认及构建流程，缓存失败回退禁止重建。最终 76 项主项目、55 项运行时回归通过；详见第 4.2 节。以下整体比较与热测试描述保留 9 月 2 日基线，用户随后已确认散热问题解决并授权短时复测。
 
 本轮已停止继续修改性能代码，并用官方当日最新提交重跑整体比较。当前可在本机完整验证的低风险、无损优化已基本完成；固定检查帧和 5000 帧姿态结果没有发现精度或视觉变化。当前配置是：TensorRT、THA3 separable FP32、Medium 姿态简化、30 FPS、RAM/VRAM 缓存各 2 GB、RIFE 与超分关闭、Debug 输出、扩展移动开启、iFacialMocap 可用。
 
@@ -194,6 +196,18 @@ TensorRT 和 DirectML 的稳态/热缓存原始模型输出与最终 BGR 检查�
 清单微基准：当前 THA3 separable FP32 的五个 ONNX 共 224,788,839 字节；首次完整 SHA-256 约 0.211 秒，重新加载模块后从持久化清单取值约 0.0033 秒（文件已在系统缓存中，约快 64 倍），五个条目均命中。
 
 引擎构建本身是不可细分调用，构建后的冷却无法阻止调用期间瞬时 100% 利用率。因此最有效的硬件保护是让已构建引擎可靠持久化，并在缺失时先提示。任何 GPU 测试都继续遵守 90% 持续占空比，但瞬时利用率仍可能高于 90%。runtime JIT cache 与 `.trt` 引擎是两层独立缓存：关闭前者不会重建后者，但每次启动需重新创建 execution context。本机五个 FP32 context 无 runtime cache 时约 14.27 秒，随后稳态推理中位数约 17.17 ms；原有 runtime cache 复现到 decomposer 可加载、combiner 在 context 创建超过 90 秒无返回，序列化新 cache 也出现阻塞，因此稳定性优先于约十余秒的启动收益。可用 `EZVTB_TRT_RUNTIME_CACHE=1` 仅作未来驱动/运行库复测。
+
+#### runtime JIT cache 后续调查（2026-09-05）
+
+- [x] 核对初次实现与回退提交、实际模型形状、缓存身份及官方已知问题；首轮只读归档见 [RUNTIME_JIT_CACHE_INVESTIGATION_2026-09-05.md](RUNTIME_JIT_CACHE_INVESTIGATION_2026-09-05.md)，原始结果见 [runtime-cache-audit.json](benchmark_results/2026-09-05/runtime-cache-audit.json)。
+- [x] 用户确认散热/硬件问题解决后，用显式 primary CUDA context、现有 `.trt` 和独立 cache 目录完成 combiner 的创建→保存→新进程重载，再扩展五引擎。六个单引擎用例、五组四姿态管线及三次实际模型进程检查均完成，同组输出逐字节一致。
+- [x] 模型进程外增加 60 秒启动超时；失败先结束旧 worker 并释放其输出共享内存，再关闭 runtime cache 重试一次。两次均要求已有有效 `.trt`，禁止构建和静默切换 DirectML；原生占住 GIL 的真实子进程超时回退测试通过。
+- [x] 按 `EZVTB_DEVICE_ID` 使用 primary CUDA context，替换 `pycuda.autoinit`；检查 enqueue 返回值，提交失败不保存 cache。主项目 69 项、运行时 55 项回归通过。
+- [x] 试用阶段用户通过 `01C.Runtime-cache-trial.bat` 手动确认 TensorRT 停止再启动明显更快；当时普通/调试入口默认关闭 runtime cache，因此启动速度仍与原来相同。
+- [x] 用户确认重启加速后授权正式应用和提交：A/B 默认开启带外部启动保护的 runtime cache，B 作为日常调试入口，C 保留相同设置。缺少可用引擎时保留正常构建流程；严格探针与普通缓存错误/超时回退仍禁止构建。最终主项目 76 项、运行时 55 项回归通过。
+- [ ] 持续收集真实动作输入、预览和更长使用过程中的稳定性反馈；这部分不计为本轮已验证。
+
+环境仍为 TensorRT-RTX `1.3.0.35` / PyCUDA `2025.1.2`，未升级运行库或更改精度。实际模型进程关闭 runtime cache 的启动为 14.974 秒，缓存命中的两次测量为 5.030 / 2.020 秒，首帧 RGBA 相同；五引擎构造的应用 primary-context 重载为 989.419 ms。14 个有效 TensorRT 短测全部完成，最高温度 56°C，全部测试 worker 已退出，未重建引擎或修改生产缓存。旧 user context + 旧 blob 的有界对照也成功，因此历史阻塞根因仍未确认；静态模型也不足以支持“换 EAGER / 升级即可修复”的判断。用户确认后已对启动器默认启用，保留外部启动回退；无监督的 SDK 默认值仍关闭。详细修改、测量边界与使用步骤见 [RUNTIME_JIT_CACHE_REPAIR_2026-09-05.md](RUNTIME_JIT_CACHE_REPAIR_2026-09-05.md)，结果索引见 [runtime-cache-repair-summary.json](benchmark_results/2026-09-05/runtime-cache-repair-summary.json)。
 
 ### 4.3 TensorRT 小型开销清理
 

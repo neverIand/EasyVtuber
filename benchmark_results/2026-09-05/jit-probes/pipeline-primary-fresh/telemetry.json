@@ -1,0 +1,322 @@
+[
+  {
+    "monotonic_seconds": 2287.989701,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 470421504.0,
+    "power_w": 4.438
+  },
+  {
+    "monotonic_seconds": 2288.5036894,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 557051904.0,
+    "power_w": 4.438
+  },
+  {
+    "monotonic_seconds": 2289.0072854,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 50.0,
+    "vram_used_bytes": 735309824.0,
+    "power_w": 19.143
+  },
+  {
+    "monotonic_seconds": 2289.5073602,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 51.0,
+    "vram_used_bytes": 737406976.0,
+    "power_w": 19.664
+  },
+  {
+    "monotonic_seconds": 2290.0087275,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 737406976.0,
+    "power_w": 19.574
+  },
+  {
+    "monotonic_seconds": 2290.5105269,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 752087040.0,
+    "power_w": 19.404
+  },
+  {
+    "monotonic_seconds": 2291.0124795,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 752087040.0,
+    "power_w": 19.448
+  },
+  {
+    "monotonic_seconds": 2291.5275399,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 752087040.0,
+    "power_w": 19.457
+  },
+  {
+    "monotonic_seconds": 2292.0432507,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 752087040.0,
+    "power_w": 19.457
+  },
+  {
+    "monotonic_seconds": 2292.5576725,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 0.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 752087040.0,
+    "power_w": 18.863
+  },
+  {
+    "monotonic_seconds": 2293.0699575,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 0.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 752087040.0,
+    "power_w": 18.528
+  },
+  {
+    "monotonic_seconds": 2293.5847035,
+    "gpu_utilization_percent": 2.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 775155712.0,
+    "power_w": 19.968
+  },
+  {
+    "monotonic_seconds": 2294.0994178,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 775155712.0,
+    "power_w": 19.479
+  },
+  {
+    "monotonic_seconds": 2294.61473,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 775155712.0,
+    "power_w": 19.672
+  },
+  {
+    "monotonic_seconds": 2295.1291921,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 787738624.0,
+    "power_w": 19.554
+  },
+  {
+    "monotonic_seconds": 2295.6297439,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 1.0,
+    "temperature_c": 53.0,
+    "vram_used_bytes": 787738624.0,
+    "power_w": 19.527
+  },
+  {
+    "monotonic_seconds": 2296.1298359,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 9.0,
+    "temperature_c": 50.0,
+    "vram_used_bytes": 787738624.0,
+    "power_w": 7.82
+  },
+  {
+    "monotonic_seconds": 2296.6428865,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 9.0,
+    "temperature_c": 50.0,
+    "vram_used_bytes": 787738624.0,
+    "power_w": 7.864
+  },
+  {
+    "monotonic_seconds": 2297.1576626,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 9.0,
+    "temperature_c": 50.0,
+    "vram_used_bytes": 787738624.0,
+    "power_w": 7.864
+  },
+  {
+    "monotonic_seconds": 2297.669646,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 15.0,
+    "temperature_c": 49.0,
+    "vram_used_bytes": 787738624.0,
+    "power_w": 5.652
+  },
+  {
+    "monotonic_seconds": 2298.1838657,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 18.0,
+    "temperature_c": 49.0,
+    "vram_used_bytes": 823390208.0,
+    "power_w": 4.819
+  },
+  {
+    "monotonic_seconds": 2298.6854058,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 18.0,
+    "temperature_c": 49.0,
+    "vram_used_bytes": 835973120.0,
+    "power_w": 5.227
+  },
+  {
+    "monotonic_seconds": 2299.186468,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 24.0,
+    "temperature_c": 49.0,
+    "vram_used_bytes": 835973120.0,
+    "power_w": 5.214
+  },
+  {
+    "monotonic_seconds": 2299.7007205,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 20.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 835973120.0,
+    "power_w": 4.889
+  },
+  {
+    "monotonic_seconds": 2300.2026524,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 24.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 949219328.0,
+    "power_w": 5.176
+  },
+  {
+    "monotonic_seconds": 2300.7160001,
+    "gpu_utilization_percent": 95.0,
+    "memory_utilization_percent": 18.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 949219328.0,
+    "power_w": 6.257
+  },
+  {
+    "monotonic_seconds": 2301.2172041,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 25.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 949219328.0,
+    "power_w": 5.235
+  },
+  {
+    "monotonic_seconds": 2301.7316017,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 23.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 974843904.0,
+    "power_w": 4.981
+  },
+  {
+    "monotonic_seconds": 2302.2443978,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 25.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 974843904.0,
+    "power_w": 5.093
+  },
+  {
+    "monotonic_seconds": 2302.7589878,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 24.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 974843904.0,
+    "power_w": 5.161
+  },
+  {
+    "monotonic_seconds": 2303.2714108,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 23.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 974843904.0,
+    "power_w": 5.199
+  },
+  {
+    "monotonic_seconds": 2303.7854283,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 24.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 1256583168.0,
+    "power_w": 5.255
+  },
+  {
+    "monotonic_seconds": 2304.2994727,
+    "gpu_utilization_percent": 1.0,
+    "memory_utilization_percent": 23.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 1256583168.0,
+    "power_w": 5.152
+  },
+  {
+    "monotonic_seconds": 2304.8012866,
+    "gpu_utilization_percent": 4.0,
+    "memory_utilization_percent": 23.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 1269166080.0,
+    "power_w": 5.045
+  },
+  {
+    "monotonic_seconds": 2305.3025266,
+    "gpu_utilization_percent": 2.0,
+    "memory_utilization_percent": 19.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 1260777472.0,
+    "power_w": 5.087
+  },
+  {
+    "monotonic_seconds": 2305.8035291,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 21.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 1260777472.0,
+    "power_w": 5.064
+  },
+  {
+    "monotonic_seconds": 2306.3048885,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 26.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 1260777472.0,
+    "power_w": 5.177
+  },
+  {
+    "monotonic_seconds": 2306.819698,
+    "gpu_utilization_percent": 0.0,
+    "memory_utilization_percent": 28.0,
+    "temperature_c": 48.0,
+    "vram_used_bytes": 1306914816.0,
+    "power_w": 5.308
+  },
+  {
+    "monotonic_seconds": 2307.3314242,
+    "gpu_utilization_percent": 45.0,
+    "memory_utilization_percent": 34.0,
+    "temperature_c": 49.0,
+    "vram_used_bytes": 1315303424.0,
+    "power_w": 5.699
+  },
+  {
+    "monotonic_seconds": 2307.8434182,
+    "gpu_utilization_percent": 15.0,
+    "memory_utilization_percent": 12.0,
+    "temperature_c": 52.0,
+    "vram_used_bytes": 1315303424.0,
+    "power_w": 20.217
+  }
+]

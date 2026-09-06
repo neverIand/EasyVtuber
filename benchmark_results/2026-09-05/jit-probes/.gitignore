@@ -1,0 +1,4 @@
+# Keep the reports; native engine/cache copies are local probe inputs.
+*.trt
+*.runtime.cache
+*.tmp

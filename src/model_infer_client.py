@@ -13,9 +13,14 @@ from .utils.frame_transform import apply_output_transform, build_output_transfor
 from typing import List
 
 class ModelClientProcess(Process):
-    def __init__(self, input_image, pose_position_shm: shared_memory.SharedMemory , input_fps):
+    def __init__(self, input_image, pose_position_shm: shared_memory.SharedMemory , input_fps,
+                 *, disable_runtime_cache=False, require_engine_cache=False):
         super().__init__()
         self.input_image = input_image
+        self.disable_runtime_cache = disable_runtime_cache
+        self.require_engine_cache = require_engine_cache
+        self.ready_event = Event()
+        self.engine_cache_required_event = Event()
         self.pose_position_shm = pose_position_shm  # 45 floats for pose, 4 floats for position
         
         self.alpha_width_scale = 2 if args.alpha_split else 1
@@ -35,6 +40,21 @@ class ModelClientProcess(Process):
         self.finish_event = Event()
 
     def run(self):
+        from ezvtb_rt.trt_cache import EngineCacheRequiredError
+
+        try:
+            self._run_inference()
+        except EngineCacheRequiredError:
+            # Only this typed failure can request the normal engine-build
+            # path. A runtime-cache failure/timeout must never request it.
+            self.engine_cache_required_event.set()
+            raise
+
+    def _run_inference(self):
+        if self.disable_runtime_cache:
+            os.environ['EZVTB_TRT_RUNTIME_CACHE'] = ''
+        if self.require_engine_cache:
+            os.environ['EZVTB_TRT_REQUIRE_ENGINE_CACHE'] = '1'
         # 插值帧红点标记：由 --mark_interpolated 控制，供 ezvtb_rt 读取
         if getattr(args, 'mark_interpolated', False):
             os.environ['EZVTB_MARK_INTERPOLATED'] = '1'
@@ -82,6 +102,7 @@ class ModelClientProcess(Process):
 
         # Use unified ezvtb_rt interface for both THA3 and THA4
         model = get_core(use_tensorrt=args.use_tensorrt,
+                            allow_backend_fallback=not self.require_engine_cache,
                             model_version=args.model_version,
                             model_name=args.model_name,
 
@@ -131,6 +152,7 @@ class ModelClientProcess(Process):
             )
         )
         print("Model Inference Ready")
+        self.ready_event.set()
         while True:
             with pose_position_shm_guard.lock():
                 np_pose = np_pose_shm.copy()

@@ -1,0 +1,54 @@
+{
+  "status": "ok",
+  "reason": null,
+  "returncode": 0,
+  "worker_pid": 20100,
+  "worker_exited": true,
+  "last_stage": "shutdown",
+  "elapsed_seconds": 0.8120000000001255,
+  "gpu": {
+    "available": true,
+    "error": null,
+    "stop_reason": null,
+    "sample_count": 2,
+    "gpu_average_percent": 6.5,
+    "gpu_peak_percent": 13.0,
+    "memory_average_percent": 19.5,
+    "temperature_peak_c": 46.0,
+    "vram_peak_bytes": 623636480,
+    "power_peak_w": 5.061
+  },
+  "worker": {
+    "status": "ok",
+    "trt_version": "1.3.0.35",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "context": "primary",
+    "graph": "on",
+    "runtime_cache": "load",
+    "cache_loaded": true,
+    "cache_bytes": 1582677,
+    "durations_ms": {
+      "cuda_context": 0.04910000006930204,
+      "deserialize_engine": 7.865999999921769,
+      "create_runtime_cache": 0.06689999986519979,
+      "deserialize_runtime_cache": 128.71999999993022,
+      "create_execution_context": 73.70170000012877,
+      "enqueue": 2.0818999998937215,
+      "synchronize": 0.4473999999845546,
+      "download": 0.005300000111674308,
+      "serialize_runtime_cache": 41.03519999989658,
+      "copy_serialized_bytes": 3.032300000086252
+    },
+    "input_sha256": {
+      "image_prepared": "55911fb357b0422b82fd21ffacfcd2f9566c5f9c582a9823df572b6fbc59a997",
+      "eyebrow_background_layer": "b4d3cec196b1e0cf363b115fcd2012547b6c56a3b1101a9f3d3df8a62c3e5560",
+      "eyebrow_layer": "6a90c536afc247d6b7628e0fa8feec81e7a46b0f985176b7e81fa612d933853b",
+      "eyebrow_pose": "c84ded8f5705e1d1c95ee4e3d063c24323b6a0e05fcb61b14b252c6f896ce193"
+    },
+    "output_sha256": {
+      "eyebrow_image": "d18fc67e2895546195e48749a0ade9ce0370c92cbd929336ced633a16f16d963",
+      "/face_morpher/body/downsample_blocks.3/downsample_blocks.3.3/Relu_output_0": "bc52fb225ee8ad6f04f8a2cea9b2f00550406a4bbbdb5add018b52a24453d814"
+    },
+    "engine_sha256": "808484de630cfdc50573de22cb6207df7b6403afc05a3703e73bb684f7efb03d"
+  }
+}

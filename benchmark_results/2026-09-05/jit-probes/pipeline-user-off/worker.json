@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "pipeline": "THA3 separable FP32",
+  "context": "user",
+  "runtime_cache": "off",
+  "graph": "on",
+  "input_image_sha256": "b315c68dd569e459d76b400db8f2d471d5910ca3b8d3e703785cf05bd77c6cb9",
+  "pose_sha256": "921f79f1994cfd4e81d2b3364545ec1b3a48c3caf5d0bec2d17ae51ee2fdbc29",
+  "output_sha256": [
+    "306e7b60fd23caba3669e1d913cb2b4bc8579acdede90e7c182d7ba9d7fe968d",
+    "c768d6321223518fbaa69148696da8d4f8922f58128b3b8c8855d1b371ad1b85",
+    "23ef8168fe965c80e679af4f68f297c40437def43b0fb1054512fd4815495a40",
+    "f45be789c07692ee3f4e9c9f15c52511c51b743d6669e8e147f36c48307a30d5"
+  ],
+  "durations_ms": {
+    "cuda_context": 51.51029999979073,
+    "decomposer.deserialize": 95.54459999981191,
+    "decomposer.context": 3325.968499999817,
+    "combiner.deserialize": 11.136399999941204,
+    "combiner.context": 2927.6061999999,
+    "morpher.deserialize": 21.858800000245537,
+    "morpher.context": 1439.51399999969,
+    "rotator.deserialize": 28.429699999833247,
+    "rotator.context": 2406.25639999962,
+    "editor.deserialize": 40.69500000014159,
+    "editor.context": 2288.6601999998675,
+    "core.construct": 15799.683400000049,
+    "core.set_image": 260.5119999998351,
+    "core.inference.0": 349.82239999999365,
+    "core.inference.1": 26.4406000001145,
+    "core.inference.2": 16.49020000013479,
+    "core.inference.3": 16.310900000007678
+  },
+  "cache_sizes": {}
+}

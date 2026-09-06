@@ -1,0 +1,54 @@
+{
+  "status": "ok",
+  "reason": null,
+  "returncode": 0,
+  "worker_pid": 25712,
+  "worker_exited": true,
+  "last_stage": "shutdown",
+  "elapsed_seconds": 0.9379999999998745,
+  "gpu": {
+    "available": true,
+    "error": null,
+    "stop_reason": null,
+    "sample_count": 3,
+    "gpu_average_percent": 3.0,
+    "gpu_peak_percent": 8.0,
+    "memory_average_percent": 24.333333333333332,
+    "temperature_peak_c": 48.0,
+    "vram_peak_bytes": 605409280,
+    "power_peak_w": 20.141
+  },
+  "worker": {
+    "status": "ok",
+    "trt_version": "1.3.0.35",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "context": "user",
+    "graph": "on",
+    "runtime_cache": "load",
+    "cache_loaded": true,
+    "cache_bytes": 1581313,
+    "durations_ms": {
+      "cuda_context": 59.768699999949604,
+      "deserialize_engine": 11.01480000011179,
+      "create_runtime_cache": 0.05840000017087732,
+      "deserialize_runtime_cache": 140.33779999999751,
+      "create_execution_context": 80.21340000004784,
+      "enqueue": 1.9658999999592197,
+      "synchronize": 0.5307999999786261,
+      "download": 0.008199999911084888,
+      "serialize_runtime_cache": 29.430199999978868,
+      "copy_serialized_bytes": 0.2956999999241816
+    },
+    "input_sha256": {
+      "image_prepared": "55911fb357b0422b82fd21ffacfcd2f9566c5f9c582a9823df572b6fbc59a997",
+      "eyebrow_background_layer": "b4d3cec196b1e0cf363b115fcd2012547b6c56a3b1101a9f3d3df8a62c3e5560",
+      "eyebrow_layer": "6a90c536afc247d6b7628e0fa8feec81e7a46b0f985176b7e81fa612d933853b",
+      "eyebrow_pose": "c84ded8f5705e1d1c95ee4e3d063c24323b6a0e05fcb61b14b252c6f896ce193"
+    },
+    "output_sha256": {
+      "eyebrow_image": "d18fc67e2895546195e48749a0ade9ce0370c92cbd929336ced633a16f16d963",
+      "/face_morpher/body/downsample_blocks.3/downsample_blocks.3.3/Relu_output_0": "bc52fb225ee8ad6f04f8a2cea9b2f00550406a4bbbdb5add018b52a24453d814"
+    },
+    "engine_sha256": "808484de630cfdc50573de22cb6207df7b6403afc05a3703e73bb684f7efb03d"
+  }
+}

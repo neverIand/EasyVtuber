@@ -76,6 +76,55 @@ assert ezvtb_rt.CoreORT is not None
 assert 'torch' not in sys.modules
 ''')
 
+    def test_runtime_cache_trial_cannot_silently_switch_backend(self):
+        self.run_without_torch(r'''
+from unittest import mock
+from src import ezvtb_rt_interface as interface
+
+class UnavailableTRT:
+    CoreORT = mock.Mock()
+
+    @property
+    def CoreTRT(self):
+        raise ImportError('missing TensorRT DLL')
+
+runtime = UnavailableTRT()
+with mock.patch.object(interface, 'ezvtb_rt', runtime), mock.patch.object(interface.args, 'use_tensorrt', True):
+    try:
+        interface.get_core(use_tensorrt=True, allow_backend_fallback=False)
+    except RuntimeError as error:
+        assert isinstance(error.__cause__, ImportError)
+    else:
+        raise AssertionError('Guarded trial silently switched backend')
+    runtime.CoreORT.assert_not_called()
+    assert interface.args.use_tensorrt
+
+    # Preserve the existing fallback policy outside guarded trials.
+    interface.get_core(use_tensorrt=True)
+    runtime.CoreORT.assert_called_once()
+    assert not interface.args.use_tensorrt
+''')
+
+    def test_model_worker_reports_only_typed_engine_cache_failures(self):
+        self.run_without_torch(r'''
+from unittest import mock
+from src.model_infer_client import ModelClientProcess
+from ezvtb_rt.trt_cache import EngineCacheRequiredError
+
+for error, expected_signal in [(EngineCacheRequiredError('missing engine'), True),
+                               (RuntimeError('runtime cache failed'), False)]:
+    worker = object.__new__(ModelClientProcess)
+    worker.engine_cache_required_event = mock.Mock()
+    worker._run_inference = mock.Mock(side_effect=error)
+    try:
+        worker.run()
+    except type(error):
+        pass
+    else:
+        raise AssertionError('Startup failure was swallowed')
+    assert worker.engine_cache_required_event.set.called == expected_signal
+''')
+
 
 if __name__ == '__main__':
     unittest.main()

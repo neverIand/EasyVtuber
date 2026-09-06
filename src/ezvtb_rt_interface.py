@@ -45,11 +45,14 @@ def get_core(
         sr_x4:bool = True,
         sr_half:bool = True,
         sr_a4k:bool = False,
+        allow_backend_fallback:bool = True,
         ):
     if use_tensorrt:
         try:
             Core = ezvtb_rt.CoreTRT
         except Exception as error:
+            if not allow_backend_fallback:
+                raise RuntimeError('TensorRT is required for guarded runtime-cache startup/recovery') from error
             print(f"TensorRT is not available, fallback to ONNX Runtime: {error}")
             args.use_tensorrt = False
             Core = ezvtb_rt.CoreORT
